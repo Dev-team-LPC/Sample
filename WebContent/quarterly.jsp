@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+.<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="cc.littlepig.databases.Database"%>
 <%@ page import="cc.littlepig.classes.Caps"%>
 <%@page import="java.time.LocalDate"%>
@@ -191,7 +191,7 @@
 
                                                 <div class="form-label-group">
                                                     <i class="fa fa-calendar"></i> <label for="creationDate">Creation Date:</label>
-                                                    <input class="form-control" id="creationDate" name="creationDate" min="<%=LocalDate.now().minusMonths(3)%>" max="<%=LocalDate.now()%>" required type="date" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
+                                                    <input class="form-control" id="creationDate" name="creationDate" min="<%=LocalDate.now().minusMonths(3)%>" max="<%=LocalDate.now()%>" onkeydown="clean('creationDate')" onkeyup="clean('creationDate')" onclick="clean('creationDate')" required type="date" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
                                                 </div>
                                             </div>
                                             <div class="modal-footer">

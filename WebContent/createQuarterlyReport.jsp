@@ -10,7 +10,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>Quarterly Report Generation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+<link rel="stylesheet" href="css/reports-customstyle.css">
 </head>
 <body>
 <%!public static String mentor, months, sla_id, creationDate, learnrCount = "", sla_name = "", companyName = "", 
@@ -212,7 +223,7 @@ Evaluating and Monitoring the interns will continue to be a major aspect of <%=c
 		<div class="form-group shadow-textarea">
 		<textarea name="introduction" id="introduction" class="form-control" minlength="30"
 			maxlength="300" onkeyup="clean('introduction'), charCountr('textCountB', 'introduction')"
-			onkeydown="clean('introduction')" rows="8" cols="100" required spellcheck="true"
+			onkeydown="clean('introduction')" rows="8" cols="100" spellcheck="true"
 			title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300."
 			required>
 Most of our interns are currently placed at different partner companies to broaden their skills and expertise in a different context. They are given different projects to work on and we monitor them every month by doing weekly reports, monthly assessments and we do site visits.
@@ -223,7 +234,16 @@ The company, through <%=companyName%> Recruitment Agency, is vigorously searchin
 	<br>
 	<h2>SECTION C:  LESSON PLAN TIME SCHEDULE</h2>
 	<p>Activities which are undertaken for <u><b>workplace</b></u> learning; when and how these were done in this quarter.</p>
-	<table class="table table-sm table-responsive table-light table-hover">
+	<script>
+		$(document).ready(function() {
+			$("#activityTable").on('click', '.btnDelete', function() {
+				if (confirm("Are you sure you want to delete this row?")) {
+					$(this).closest('tr').remove();
+				}
+			});
+		});
+	</script>
+	<table class="table table-sm table-responsive table-light table-hover" id="activityTable">
 		<thead class="table-bordered" style="background-color: #d6d8d9; color: #1b1e21; border: 1px solid #c0c8ca;">
 			<tr>
 				<th>Date
@@ -233,8 +253,8 @@ The company, through <%=companyName%> Recruitment Agency, is vigorously searchin
 				<th>Mentor / Coach</th>
 				<th>Department</th>
 				<th>Action Required</th>
-				<th>Due Date
-				By When?</th>
+				<th>Due Date <br>By When?</th>
+				<th>Remove Row</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -256,7 +276,9 @@ The company, through <%=companyName%> Recruitment Agency, is vigorously searchin
 						+ sla_id + " AND TIMESTAMPDIFF(MONTH, reports.Report_Date, NOW()) <= " + months
 						+ " AND Task_Percentage = 100 ORDER BY applicant_personal_details.applicant_id ASC;");
 		ResultSet rs = st.getResultSet();
+		int count = 0;
 		while (rs.next()) {
+			count++;
 			String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name").trim());
 			String surname = new Caps().toUpperCaseSurname(rs.getString("Surname").trim());
 			name += " " + surname;
@@ -264,14 +286,15 @@ The company, through <%=companyName%> Recruitment Agency, is vigorously searchin
 			activityDate = rs.getString("Actual_Date");
 			activityName = rs.getString("tasks.Task_Name");
 			requiredAction = rs.getString("tasks.Task_Name");
-				out.print("<tr>");
-				out.print("<td>" + activityDate + "\n\n[" + name + "]</td>");
-				out.print("<td>" + activityName + "</td>");
-				out.print("<td>" + learningOutcome + activityName + "</td>");
-				out.print("<td>" + mentor + "</td>");
-				out.print("<td>" + department + "</td>");
-				out.print("<td>" + requiredAction + "</td>");
-				out.print("<td>" + dueDate + "</td>");
+				out.print("<tr id='tr"+count+"'>");
+				out.print("<td><textarea id='txtAa"+count+"' rows='5' cols='10' required spellcheck='true'>" +count +" " + activityDate + "\n\n[" + name + "]</textarea></td>");
+				out.print("<td><textarea id='txtAb"+count+"' rows='5' cols='30' required spellcheck='true'>" +count +" " + activityName + "</textarea></td>");
+				out.print("<td><textarea id='txtAc"+count+"' rows='5' cols='30' required spellcheck='true'>" +count +" " + learningOutcome + activityName + "</textarea></td>");
+				out.print("<td><textarea id='txtAd"+count+"' rows='5' cols='15' required spellcheck='true'>" +count +" " + mentor + "</textarea></td>");
+				out.print("<td><textarea id='txtAe"+count+"' rows='5' cols='15' required spellcheck='true'>" +count +" " + department + "</textarea></td>");
+				out.print("<td><textarea id='txtAf"+count+"' rows='5' cols='20' required spellcheck='true'>" +count +" " + requiredAction + "</textarea></td>");
+				out.print("<td><textarea id='txtAg"+count+"' rows='5' cols='10' required spellcheck='true'>" +count +" " + dueDate + "</textarea></td>");
+				out.print("<td><button class='btnDelete'>delete</button></td>");
 				out.print("</tr>");
 			}
 		} catch (SQLException e) {
@@ -280,6 +303,7 @@ The company, through <%=companyName%> Recruitment Agency, is vigorously searchin
 	%>
 		</tbody>
 	</table>
+
 	<br>
 	<button onclick="window.history.go(-1);">back</button>
 </body>
