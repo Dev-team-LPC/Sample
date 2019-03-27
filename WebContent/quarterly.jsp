@@ -1,4 +1,4 @@
-.<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="cc.littlepig.databases.Database"%>
 <%@ page import="cc.littlepig.classes.Caps"%>
 <%@page import="java.time.LocalDate"%>
@@ -8,12 +8,16 @@
 	<head>
 		<meta charset="UTF-8">
 		<title> Quarterly Reports </title>        
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  		
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <!-- datepicker -->        
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>        
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
@@ -70,7 +74,7 @@
                                     <i class="fa fa-user"></i>
                                     <%
                                     	if (request.getSession().getAttribute("username") == null) {
-                                    		response.sendRedirect(request.getContextPath() + "/SiteController?action=login");
+                                    		response.sendRedirect(request.getContextPath() + "/DashboardController?action=destroy");
                                     	} else {
                                     		out.print(new Caps().toUpperCaseFirstLetter(request.getSession().getAttribute("First_Name").toString()));
                                     	}
@@ -94,9 +98,9 @@
                         </li>
                         <li class="breadcrumb-item active">Quarterly Reports</li>
                     </ol>
-
+					${message}
                     <div class="row">
-                        <div class="col-lg-6">
+                        <div class="col-lg-12">
                             <!-- generate report card-->
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -104,7 +108,7 @@
                                 </div>
                                 <div class="card-body">
                                     <h6 class="card-title font-weight-bold text-secondary">Fill in all form fields to generate a report</h6>
-                                    <form name="myform" action="#" method="get">
+                                    <form name="myform" action="#" method="post">
                                         <div style="display:none;" id="myAlert">
                                             <div class="alert alert-warning alert-dismissable" id="myAlert2">
                                                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
@@ -119,13 +123,13 @@
                                             <select name="slasDropdownQR" id="mictProgramme" class="form-control selectpicker" data-dropup-auto="false" data-live-search="true" required>
                                                 <option></option>
                                                 <%
-                                                    String sla_id, sla, sla_type, numOfLearners;
                                                     try {
                                                         Database DB = new Database();
                                                         Connection con = DB.getCon1();
                                                         Statement st = con.createStatement();
                                                         st.executeQuery("SELECT * FROM sla WHERE end_date >= NOW();");
                                                         ResultSet rs = st.getResultSet();
+	                                                    String sla_id, sla, sla_type, numOfLearners;
                                                         while (rs.next()) {
                                                             sla = rs.getString("Name").trim();
                                                             sla_id = rs.getString("id");
@@ -153,15 +157,15 @@
                                                     <option>4 months</option>
                                                 </select>
                                             </div>
-                                            <div class="col-auto col-md-6">
-                                                <label for="date">Creation Date: </label>   
-                                                <input class="form-control" id="date" name="date" type="date" name="creationDateQR" min="<%=LocalDate.now().minusMonths(3)%>" max="<%=LocalDate.now()%>"  onkeydown="clean('date')" onkeyup="clean('date')" onclick="clean('date')" required pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
+										<div class="col-auto col-md-6">
+                                                <label for="myDate">Creation Date: </label>   
+                                                <input class="form-control" id="myDate" name="myDate" type="text" name="creationDateQR" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
                                             </div>
                                         </div>
                                         <br>
-                                        <div class="form-row">
+                                        <div class="form-row float-right">
                                             <div class="col-auto col-md-12">
-												<input class="btn btn-md btn-outline-primary" id="gen" onclick="generateReport()" value="submit" type="button">
+												<input class="btn btn-md btn-info" onclick="generateReport()" value="submit" type="button">
 					                        </div>
                                         </div>
                                     </form>
@@ -191,12 +195,12 @@
 
                                                 <div class="form-label-group">
                                                     <i class="fa fa-calendar"></i> <label for="creationDate">Creation Date:</label>
-                                                    <input class="form-control" id="creationDate" name="creationDate" min="<%=LocalDate.now().minusMonths(3)%>" max="<%=LocalDate.now()%>" onkeydown="clean('creationDate')" onkeyup="clean('creationDate')" onclick="clean('creationDate')" required type="date" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
+                                                    <input class="form-control" id="creationDate" name="creationDate" readonly title="The date should be in this format: YYYY-MM-DD">
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-md btn-secondary" data-dismiss="modal">cancel</button>
-                                                <button role="button" type="submit" class="btn btn-md btn-success" target="_blank"><i class="fa fa-cog fa-spin"></i> generate</button>
+                                                <button role="button" type="submit" class="btn btn-md btn-success">forward</button>
                                             </div>
                                         </form>
                                     </div>
@@ -204,6 +208,70 @@
                             </div>
 						</div>
                     </div>
+					<div class="row">
+                        <div class="col-lg-12">
+                            <!-- list generated reports card-->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h4 class="display-9">Quarterly Reports</h4>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title font-weight-bold text-secondary">List of all created reports</h6>
+								<table class="table table-bordered table-condensed table-responsive text-nowrap table-sm table-hover">
+									<thead class="thead-light">
+										<tr>
+											<th>Status</th>
+											<th>SLA Programme</th>
+											<th>Programme Type</th>
+											<th>Report Type</th>
+											<th>Created By</th>
+											<th>Report Date</th>
+											<th>Date Created</th>
+										</tr>
+									</thead>
+									<%
+										String report_id = "", sla_name = "", creator = "", date_created = "", report_type = "", report_status = "",
+												report_date = "", learners = "", progType = "", sla_id, months;
+										try {
+											Database DB = new Database();
+											Connection con = DB.getCon1();
+											Statement st = con.createStatement();
+											st.executeQuery("SELECT sla_report.id, sla_id, sla.type, sla.Name, sla.number_of_learners, CONCAT(First_Name,' ',Surname) creator, creation_date, sla_report.created_at, months, sla_report_type.type , sla_report_status.status FROM sla_report INNER JOIN sla_report_type ON sla_report_type.id = sla_report.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_report.report_status_id INNER JOIN sla ON sla.id = sla_report.sla_id INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_report.user_id WHERE report_type_id = 1;");
+											ResultSet rs = st.getResultSet();
+
+											while (rs.next()) {
+												report_id = (String) rs.getString("sla_report.id").trim().substring(0);
+												sla_name = (String) rs.getString("sla.Name").trim();
+												creator = (String) rs.getString("creator");
+												date_created = (String) rs.getString("sla_report.created_at");
+												report_type = (String) rs.getString("sla_report_type.type");
+												report_status = (String) rs.getString("sla_report_status.status");
+												report_date = (String) rs.getString("creation_date");
+												progType = (String) rs.getString("sla.type");
+												months = (String) rs.getString("months");
+												sla_id = (String) rs.getString("sla_id");
+												learners = (String) rs.getString("sla.number_of_learners");
+									%>
+									<tr class='clickable-row' data-href='<%=request.getContextPath()%>/DashboardController?action=edit-quarterly-reports&report_id=<%=report_id%>&sla_id=<%=sla_id%>&months=<%=months%>' title="click to open report">
+										<td><%=report_status%></td>
+										<td><%=sla_name%></td>
+										<td><%=new Caps().toUpperCaseFirstLetter(progType)%></td>
+										<td><%=report_type%></td>
+										<td><%=creator%></td>
+										<td><%=report_date%></td>
+										<td><%=date_created%></td>
+									</tr>
+									<%
+										}
+										} catch (SQLException e) {
+											System.out.println(e);
+										}
+									%>
+								</table>
+							</div>
+                            </div>
+						</div>
+                    </div>                   
                     <!-- Sticky Footer -->
                     <footer class="sticky-footer">
                         <div class="container my-auto">
@@ -218,52 +286,52 @@
         </div>
         <!-- /#wrapper -->
 
-        <script>
-            //validate date input
-            function clean(el) {
-                var textfield = document.getElementById(el);
-                var regex = /[^0-9\-]/g;
-                if (textfield.value.search(regex) > -1) {
-                    textfield.value = textfield.value.replace(regex, "");
-                }
-            }
-            //validate form input
-            function generateReport() {
-                var x = document.forms["myform"]["slasDropdownQR"].value;
-                var y = document.forms["myform"]["numOfMonths"].value;
-                var z = document.forms["myform"]["date"].value;
-                if (z !== "" && y !== "" && x !== "") {
-                    $("#sla").val($('#mictProgramme').val());
-                    $("#months").val($('#numOfMonths').val() + " before the date below");
-                    $("#creationDate").val($('#date').val());
-                    document.getElementById('sla').title = $('#mictProgramme').val();
-                    $('#quarterlyReportModal').modal();
-                } else {
-                    if ($("#myAlert").find("div#myAlert2").length === 0) {
-                        $("#myAlert").append("<div class='alert alert-warning alert-dismissable' id='myAlert2'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Please fill in all the form fields.</div>");
-                    }
-                    $("#myAlert").css("display", "");
-                }
-            }
-            //Sidebar dropdown
-            var dropdown = document.getElementsByClassName("dropdown-btn");
-            var i;
-            for (i = 0; i < dropdown.length; i++) {
-                dropdown[i].addEventListener("click", function () {
-                    this.classList.toggle("active");
-                    var dropdownContent = this.nextElementSibling;
-                    if (dropdownContent.style.display === "block") {
-                        dropdownContent.style.display = "none";
-                    } else {
-                        dropdownContent.style.display = "block";
-                    }
-                });
-            }
-            //toggle sidebar on-off
-            $("#menu-toggle").click(function (e) {
-                e.preventDefault();
-                $("#wrapper").toggleClass("toggled");
-            });
-        </script>
-    </body>
+	<script>
+		//make table row clickable
+	    $(".clickable-row").click(function() {
+	        window.location = $(this).data("href");
+	    });
+		//datepicker
+			$('#myDate').datepicker({
+				dateFormat : 'yy-mm-dd', minDate: "-3M", maxDate: 0
+			}).on('keypress', function(e){ e.preventDefault(); });
+		//validate form input
+		function generateReport() {
+			var x = document.forms["myform"]["slasDropdownQR"].value;
+			var y = document.forms["myform"]["numOfMonths"].value;
+			var z = document.forms["myform"]["myDate"].value;
+			if (z !== "" && y !== "" && x !== "") {
+				$("#sla").val($('#mictProgramme').val());
+				$("#months").val($('#numOfMonths').val() + " before the date below");
+				$("#creationDate").val($('#myDate').val());
+				document.getElementById('sla').title = $('#mictProgramme').val();
+				$('#quarterlyReportModal').modal();
+			} else {
+				if ($("#myAlert").find("div#myAlert2").length === 0) {
+					$("#myAlert").append("<div class='alert alert-warning alert-dismissable' id='myAlert2'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Please fill in all the form fields.</div>");
+				}
+				$("#myAlert").css("display", "");
+			}
+		}
+		//Sidebar dropdown
+		var dropdown = document.getElementsByClassName("dropdown-btn");
+		var i;
+		for (i = 0; i < dropdown.length; i++) {
+			dropdown[i].addEventListener("click", function() {
+				this.classList.toggle("active");
+				var dropdownContent = this.nextElementSibling;
+				if (dropdownContent.style.display === "block") {
+					dropdownContent.style.display = "none";
+				} else {
+					dropdownContent.style.display = "block";
+				}
+			});
+		}
+		//toggle sidebar on-off
+		$("#menu-toggle").click(function(e) {
+			e.preventDefault();
+			$("#wrapper").toggleClass("toggled");
+		});
+	</script>
+</body>
 </html>

@@ -28,41 +28,51 @@
         <link rel="stylesheet" href="css/reports-customstyle.css">
     </head>
     <body>
-        <%!public static String mentor, months, sla_id, creationDate, creationDateSQL, learnrCount = "", sla_name = "", companyName = "",
-                    progType = "", managerName = "", managerSurname = "", managerTel = "", managerSign = "", sdlNum = "", agredidationNum = "",
-                    startDate = "", endDate = "", logo = "", managerCell = "", managerMail = "", managerAddr = "";%>
+        <%!public static String report_id, mentor, months, sla_id, creationDate, learnrCount = "", sla_name = "",
+                    companyName = "", progType = "", managerName = "", managerSurname = "", managerTel = "", managerSign = "",
+                    sdlNum = "", agredidationNum = "", startDate = "", endDate = "", logo = "", managerCell = "",
+                    managerMail = "", managerAddr = "", introduction = "", implementation = "", implementationDesc = "",
+                    plan = "", placement = "", achievements = "", activity_date = "", activity_due_date = "",
+                    activity_name = "", activity_outcome = "", activity_action_required = "", status;%>
         <%
-            months = new Foreword().getString(request.getParameter("months"), " ");
-            sla_id = new Foreword().getString(request.getParameter("sla"), ".");
+            report_id = request.getParameter("report_id");
+            sla_id = request.getParameter("sla_id");
+            months = request.getParameter("months");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM uuuu");
-            DateTimeFormatter formatterSQL = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-            creationDate = formatter.format(LocalDate.parse(request.getParameter("creationDate")));
-            creationDateSQL = formatterSQL.format(LocalDate.parse(request.getParameter("creationDate")));
 
             try {
                 Database DB = new Database();
                 Connection con = DB.getCon1();
                 Statement st = con.createStatement();
-                st.executeQuery("SELECT t1.Name, t1.type, t1.number_of_learners, DATE_FORMAT(t1.start_date,'%d %M %Y') start_date, DATE_FORMAT(t1.end_date,'%d %M %Y') end_date, t2.company_name, t2.registration_number, t2.agredidation_number, t2.logo, t2.address, t2.representative_employer_name, t2.representative_employer_surname, t3.name, t3.surname, t3.cellphone, t3.telephone, t3.email FROM sla t1 INNER JOIN sla_company_details t2 ON t2.id = t1.company_id INNER JOIN sla_project_manager t3 ON t3.id = t2.project_manager_id WHERE t1.id = " + sla_id + ";");
+                st.executeQuery("SELECT sla.type, sla.Name, creation_date, sla.start_date, sla.end_date, sla_company_details.company_name, sla_report.created_at, sla_project_manager.name, sla_project_manager.surname, cellphone, telephone, email, sla_company_details.address, CONCAT(sla_company_details.representative_employer_name,' ',sla_company_details.representative_employer_surname) mentor, introduction, methodology, methodology_details, plan, placement, achievements, activity_date, activity_due_date, activity_name, activity_outcome, activity_action_required, sla_report_status.status FROM sla_report INNER JOIN sla_report_type ON sla_report_type.id = sla_report.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_report.report_status_id INNER JOIN sla ON sla.id = sla_report.sla_id INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_report.user_id INNER JOIN sla_company_details ON sla_company_details.id = sla_report.company_details_id INNER JOIN sla_project_manager ON sla_project_manager.id = sla_report.project_manager_id WHERE sla_report.id = " + report_id + ";");
                 ResultSet rs = st.getResultSet();
 
                 while (rs.next()) {
-                    progType = (String) rs.getString("t1.type").trim().substring(0);
-                    sla_name = (String) rs.getString("t1.Name").trim();
-                    learnrCount = (String) rs.getString("t1.number_of_learners");
-                    startDate = (String) rs.getString("start_date");
-                    endDate = (String) rs.getString("end_date");
-                    companyName = (String) rs.getString("t2.company_name");
-                    logo = (String) rs.getString("t2.logo");
-                    managerAddr = (String) rs.getString("t2.address");
-                    sdlNum = (String) rs.getString("t2.registration_number");
-                    agredidationNum = (String) rs.getString("t2.agredidation_number");
-                    mentor = new Caps().toUpperCaseFirstLetter((String) rs.getString("t2.representative_employer_name") + " " + new Caps().toUpperCaseSurname((String) rs.getString("t2.representative_employer_surname")));
-                    managerName = new Caps().toUpperCaseFirstLetter((String) rs.getString("t3.name"));
-                    managerSurname = new Caps().toUpperCaseSurname((String) rs.getString("t3.surname"));
-                    managerTel = (String) rs.getString("t3.telephone");
-                    managerMail = (String) rs.getString("t3.email");
-                    managerCell = (String) rs.getString("t3.cellphone");
+                    progType = (String) rs.getString("sla.type");
+                    sla_name = (String) rs.getString("sla.Name").trim();
+                    creationDate = (String) rs.getString("creation_date");
+                    startDate = (String) rs.getString("sla.start_date");
+                    endDate = (String) rs.getString("sla.end_date");
+                    companyName = (String) rs.getString("sla_company_details.company_name");
+                    managerName = (String) rs.getString("sla_project_manager.name");
+                    managerSurname = (String) rs.getString("sla_project_manager.surname");
+                    managerCell = (String) rs.getString("cellphone");
+                    managerTel = (String) rs.getString("telephone");
+                    managerMail = (String) rs.getString("email");
+                    managerAddr = (String) rs.getString("sla_company_details.address");
+                    introduction = (String) rs.getString("introduction");
+                    implementation = (String) rs.getString("methodology");
+                    implementationDesc = (String) rs.getString("methodology_details");
+                    plan = (String) rs.getString("plan");
+                    placement = (String) rs.getString("placement");
+                    achievements = (String) rs.getString("achievements");
+                    activity_date = (String) rs.getString("activity_date");
+                    activity_due_date = (String) rs.getString("activity_due_date");
+                    activity_name = (String) rs.getString("activity_name");
+                    activity_outcome = (String) rs.getString("activity_outcome");
+                    activity_action_required = (String) rs.getString("activity_action_required");
+                    status = (String) rs.getString("sla_report_status.status");
+                    mentor = (String) rs.getString("mentor");
                 }
             } catch (SQLException e) {
                 System.out.println(e);
@@ -120,6 +130,7 @@
                             <form action="<%=request.getContextPath()%>/DashboardController?action=save-quarterly-report" method="POST">
                                 <input name="sla" type="hidden" value="<%=sla_id%>"/> 
                                 <input name="months" type="hidden" value="<%=months%>"/>
+                                <input name="report_id" type="hidden" value="<%=report_id%>"/>
                                 <div class="carousel-item active">
                                     <div class="jumbotron">
                                         <div class="row">
@@ -154,15 +165,15 @@
                                             </tr>
                                             <tr>
                                                 <td>Date of quarterly report</td>
-                                                <td>: <input id="myDate" type="text" name="creationDate" value="<%=creationDateSQL%>" onchange="setDateSame()" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD"></td>                                            
+                                                <td>: <input id="myDate" type="text" name="creationDate" value="<%=creationDate%>" onchange="setDateSame()" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD"></td>                                            
                                             </tr>
                                             <tr>
                                                 <td>Start date</td>
-                                                <td>: <%=startDate%></td>
+                                                <td>: <%=formatter.format(LocalDate.parse(startDate))%></td>
                                             </tr>
                                             <tr>
                                                 <td>End date</td>
-                                                <td>: <%=endDate%></td>
+                                                <td>: <%=formatter.format(LocalDate.parse(endDate))%></td>
                                             </tr>
                                             <tr>
                                                 <td>Project Manager Full Name</td>
@@ -215,14 +226,14 @@
                                         <h4>Introduction</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="introduction" id="introduction" class="form-control" minlength="30" maxlength="400" onload="clean('introduction'), charCountr('textCountA', 'introduction')" onkeyup="clean('introduction'), charCountr('textCountA', 'introduction')" onkeydown="clean('introduction')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-This report comprises the fourth and final report for <%=companyName%>’s internship programme on Contract Number: <%=sla_name%>. It reviews the outcomes of assignments that the interns had been working on.</textarea>
+<%=introduction%></textarea>
                                         </div>
                                         <div id="textCountA" style="font-size: small;"></div>
 
                                         <h4>Project Implementation Methodology</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="implementation" id="implementation" class="form-control" minlength="30" maxlength="400" onload="clean('implementation'), charCountr('textCountB', 'implementation')" onkeyup="clean('implementation'), charCountr('textCountB', 'implementation')" onkeydown="clean('implementation')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-The project implementation methodology adopted by <%=companyName%> is Scrum. It is a lightweight Agile project management framework that focuses on a collaborative, iterative and incremental approach for the development of a product or service.</textarea>
+<%=implementation%></textarea>
                                         </div>
                                         <div id="textCountB" style="font-size: small;"></div>
 
@@ -232,45 +243,21 @@ The project implementation methodology adopted by <%=companyName%> is Scrum. It 
                                         <h4>About Methodology</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="implementationDetails" id="implementationDetails" class="form-control" minlength="30" maxlength="2000" onload="clean('implementationDetails'), charCountr('textCountC', 'implementationDetails')" onkeyup="clean('implementationDetails'), charCountr('textCountC', 'implementationDetails')" onkeydown="clean('implementationDetails')" rows="30" cols="100" required  spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-The Scrum Framework implements the cornerstones defined by the Agile Manifesto which emphasises the value of:	
-    * Individuals and interactions (communication) over processes and tools
-    * Working software over comprehensive documentation
-    * Customer collaboration over contract negotiation
-    * Responding to change over following a plan
-
-The main components of Scrum Framework are:
-    * The three roles: Scrum Product Owner, Scrum Master and the Scrum Team
-    * A prioritized Backlog containing the end user requirements
-    * Sprints
-    * Scrum Events: Sprint Planning Meeting (WHAT-Meeting, HOW-Meeting), Daily Scrum Meeting, Sprint Review Meeting, Sprint Retrospective Meeting.
-
-Important in all Scrum projects are self-organization and communication within the team. In the Scrum Framework the Scrum Product Owner and the Scrum Master share the responsibilities that would otherwise be those of a project manager in a classical sense.
-
-However, in the end, the team decides what and how much they can do in a given Sprint, which typically is a period of between 2 - 4 weeks. The importance of this is that it maximises release output, while making sure that errors are identified early enough for direction to be modified where deemed necessary.
-
-Another cornerstone of the Scrum Framework is communication. To this effect, Scrum consists of a daily stand-up meeting that is time-boxed to 15 minutes (Daily Scrum). In the meeting, each team member answers the following 3 questions:
-    1. What they did the day before?
-    2. What they plan to achieve today?
-    3. Do they foresee any obstacles?
-In the end, the Scrum Framework itself is very simple. It defines only some general guidelines with only a few rules, roles, artifacts and events. However each of these components is important, it serves a specific purpose and is essential for a successful usage of the framework.</textarea>
+<%=implementationDesc%></textarea>
                                         </div>
                                         <div id="textCountC" style="font-size: small;"></div>
 
                                         <h4>Strategic Plan</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="plan" id="plan" class="form-control" minlength="30" maxlength="1000" onload="clean('plan'), charCountr('textCountD', 'plan')" onkeyup="clean('plan'), charCountr('textCountD', 'plan')" onkeydown="clean('plan')" rows="10" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-The programme is in the XXXXX quarter so far it is going well. Of the original intake of 45 interns, XX interns have been employed somewhere else. And a replacement was taken on. All interns are working on various projects as mentioned in the work plan section below.
-
-Evaluating and Monitoring the interns will continue to be a major aspect of <%=companyName%>’s contribution to their empowerment and preparation for meaningful employment, hopefully internally and definitely externally. The monthly assessments carried out ensure that the work and projects they have been engaged in are effective and of high quality. They also give the company, through mutual feedback, ideas on how to improve things for the current and prospective interns’ intake.</textarea>
+<%=plan%></textarea>
                                         </div>
                                         <div id="textCountD" style="font-size: small;"></div>
 
                                         <h4>Work Placement</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="placement" id="placement" class="form-control" minlength="30" maxlength="1000" onload="clean('placement'), charCountr('textCountE', 'placement')" onkeyup="clean('placement'), charCountr('textCountE', 'placement')" onkeydown="clean('placement')" rows="8" cols="100" spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-Most of our interns are currently placed at different partner companies to broaden their skills and expertise in a different context. They are given different projects to work on and we monitor them every month by doing weekly reports, monthly assessments and we do site visits.
-
-The company, through <%=companyName%> Recruitment Agency, is vigorously searching for job opportunities for, and encouraging the remaining interns to apply for those work openings that have been identified. The endeavour is ongoing.</textarea>
+<%=placement%></textarea>
                                         </div>
                                         <div id="textCountE" style="font-size: small;"></div>
                                         <%
@@ -279,61 +266,56 @@ The company, through <%=companyName%> Recruitment Agency, is vigorously searchin
                                         <h4>Introduction</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="introduction" id="introduction" class="form-control" minlength="30" maxlength="400" onload="clean('introduction'), charCountr('textCountA', 'introduction')" onkeyup="clean('introduction'), charCountr('textCountA', 'introduction')" onkeydown="clean('introduction')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-All our interns seem to be working well considering this their first work experience. They have shown great interest and enthusiasm, and the response we get from them and their mentors show that they are getting the required experience.</textarea>
+<%=introduction%></textarea>
                                         </div>
                                         <div id="textCountA" style="font-size: small;"></div>
 
                                         <h4>Project Implementation Methodology</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="implementation" id="implementation" class="form-control" minlength="30" maxlength="400" onload="clean('implementation'), charCountr('textCountB', 'implementation')" onkeyup="clean('implementation'), charCountr('textCountB', 'implementation')" onkeydown="clean('implementation')" rows="4" cols="100" required  spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-Through the use of Scrum project management methodology, learners complete detailed description on how everything will be done, what they have done, what they are planning to do on their projects, and their obstacles. We have chosen this methodology because the interns will work independently and also in teams to provide to them the best outcome for allocated projects. This will help them know the best solutions needed for the problems presented to them.</textarea>
+<%=implementation%></textarea>
                                         </div>
                                         <div id="textCountB" style="font-size: small;"></div>
 
                                         <h4>Strategic Plan</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="plan" id="plan" class="form-control" minlength="30" maxlength="1000" onload="clean('plan'), charCountr('textCountD', 'plan')" onkeyup="clean('plan'), charCountr('textCountD', 'plan')" onkeydown="clean('plan')" rows="4" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-To have a sustainable internship programs, the learners are given tasks or project that will give them the required experience and to enhance their ICT/Marketing skills. These tasks are rotated so all interns can have the knowledge required at the end of the program. Each intern will be given a chance to meet or work with our clients in order to assist them and provide live environment experience in dealing with real time issues.</textarea>
+<%=plan%></textarea>
                                         </div>
                                         <div id="textCountD" style="font-size: small;"></div>
 
                                         <h4>Work Placement</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="placement" id="placement" class="form-control" minlength="30" maxlength="1000" onload="clean('placement'), charCountr('textCountE', 'placement')" onkeyup="clean('placement'), charCountr('textCountE', 'placement')" onkeydown="clean('placement')" rows="4" cols="100" spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-Interns are placed at partner companies where they are given individual and group projects. As Border ICT and Cabling Service we follow up on how they are progressing, and also assist with any issues that might require our intervention when problems arise which might cause setbacks on their work. Every Fridays all our interns are required to submit full report detailing all the tasks completed, including problems encountered. They are also required to submit monthly assessments.</textarea>
+<%=placement%></textarea>
                                         </div>
                                         <div id="textCountE" style="font-size: small;"></div>
                                         <%} else {%>
                                         <h4>Introduction</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="introduction" id="introduction" class="form-control" minlength="30" maxlength="400" onload="clean('introduction'), charCountr('textCountA', 'introduction')" onkeyup="clean('introduction'), charCountr('textCountA', 'introduction')" onkeydown="clean('introduction')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-The purpose of this qualification may be stated as:
-To develop learners with the requisite competencies against the skills profile for the systems support career path (The overarching aim being to develop a broader base of skilled ICT professionals to underpin economic growth)</textarea>
+<%=introduction%></textarea>
                                         </div>
                                         <div id="textCountA" style="font-size: small;"></div>
 
                                         <h4>Project Implementation Methodology</h4>
                                         <div class="form-group shadow-textarea">
-                                            <textarea name="implementation" id="implementation" class="form-control" minlength="10" maxlength="400" onload="clean('implementation'), charCountr('textCountB', 'implementation')" onkeyup="clean('implementation'), charCountr('textCountB', 'implementation')" onkeydown="clean('implementation')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-Outcomes based.</textarea>
+                                            <textarea name="implementation" id="implementation" class="form-control" minlength="30" maxlength="400" onload="clean('implementation'), charCountr('textCountB', 'implementation')" onkeyup="clean('implementation'), charCountr('textCountB', 'implementation')" onkeydown="clean('implementation')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
+<%=implementation%></textarea>
                                         </div>
                                         <div id="textCountB" style="font-size: small;"></div>
 
                                         <h4>Strategic Plan</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="plan" id="plan" class="form-control" minlength="30" maxlength="1000" onload="clean('plan'), charCountr('textCountD', 'plan')" onkeyup="clean('plan'), charCountr('textCountD', 'plan')" onkeydown="clean('plan')" rows="6" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-* Provide qualified learners with an undergraduate entry into the field of networking/systems support, earning credits towards tertiary offerings in the fields of Computer Studies or Computer Science.
-* Prepare qualified learners for initial employment in the computer industry.
-* Allow the credits achieved in the National Certificates relating to Information Technology at NQF level 4 to be used as prior learning for this qualification.
-* Allow many of the unit standards listed in this qualification, to be used in Learnership Schemes in the Information
-* Systems and Technology sector, as well as other sectors where Information Technology is a key requirement.</textarea>
+<%=plan%></textarea>
                                         </div>
                                         <div id="textCountD" style="font-size: small;"></div>
 
                                         <h4>Work Placement</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="placement" id="placement" class="form-control" minlength="30" maxlength="1000" onload="clean('placement'), charCountr('textCountE', 'placement')" onkeyup="clean('placement'), charCountr('textCountE', 'placement')" onkeydown="clean('placement')" rows="4" cols="100" spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-* Little Pig will endeavour to employ 70% of the learners, should they show commitment within the 12 months of their learnership.</textarea>
+<%=placement%></textarea>
                                         </div>
                                         <div id="textCountE" style="font-size: small;"></div>
                                         <%}%>
@@ -387,48 +369,25 @@ Outcomes based.</textarea>
                                             </thead>
                                             <tbody>
                                                 <%
-                                                    try {
-                                                        String activityDate = "", activityName = "", learningOutcome = "Be able to / to do ", department = "ICT department", requiredAction = "", dueDate = "";
-                                                        Database DB = new Database();
-                                                        Connection con = DB.getCon1();
-                                                        Statement st = con.createStatement();
-                                                        st.executeQuery(
-                                                                "SELECT applicant_personal_details.applicant_id, applicant_personal_details.First_Name, "
-                                                                + "applicant_personal_details.Surname, applicants.id_number, tasks.Task_Name, tasks.Task_Percentage, "
-                                                                + "DATE_FORMAT(reports.Report_Date,'%d/%m/%Y') as Report_Date, DATE_FORMAT(SUBDATE(reports.Report_Date, "
-                                                                + "INTERVAL 4 DAY),'%d/%m/%Y') as Actual_Date FROM intern_sla "
-                                                                + "INNER JOIN applicant_personal_details ON intern_sla.applicant_id = applicant_personal_details.applicant_id "
-                                                                + "INNER JOIN applicants ON applicants.id = intern_sla.applicant_id "
-                                                                + "INNER JOIN activity.users ON users.id_number = applicants.id_number "
-                                                                + "INNER JOIN activity.reports ON reports.user_id = users.id "
-                                                                + "INNER JOIN activity.tasks ON reports.id = tasks.report_id " + "WHERE sla_id = "
-                                                                + sla_id + " AND TIMESTAMPDIFF(MONTH, reports.Report_Date, NOW()) <= " + months
-                                                                + " AND Task_Percentage = 100 ORDER BY applicant_personal_details.applicant_id ASC;");
-                                                        ResultSet rs = st.getResultSet();
-                                                        int count = 0;
-                                                        while (rs.next()) {
-                                                            count++;
-                                                            String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name").trim());
-                                                            String surname = new Caps().toUpperCaseSurname(rs.getString("Surname").trim());
-                                                            name += " " + surname;
-                                                            dueDate = rs.getString("Report_Date");
-                                                            activityDate = rs.getString("Actual_Date");
-                                                            activityName = rs.getString("tasks.Task_Name");
-                                                            requiredAction = rs.getString("tasks.Task_Name");
-                                                            out.print("<tr>");
-                                                            out.print("<td>" + count + "</td>");
-                                                            out.print("<td>" + activityDate + "\n[" + name + "]</td>");
-                                                            out.print("<td id='actvty" + count + "' contenteditable='true' onload=\"clean('actvty" + count + "')\" onkeydown=\"clean('actvty" + count + "')\" onkeyup=\"clean('actvty" + count + "')\">" + activityName + "</td>");
-                                                            out.print("<td id='actvtOutcome" + count + "' contenteditable='true' onload=\"clean('actvtOutcome" + count + "')\" onkeydown=\"clean('actvtOutcome" + count + "')\" onkeyup=\"clean('actvtOutcome" + count + "')\">" + learningOutcome + activityName + "</td>");
-                                                            out.print("<td>" + mentor + "</td>");
-                                                            out.print("<td>" + department + "</td>");
-                                                            out.print("<td id='axnReq" + count + "' contenteditable='true' onload=\"clean('axnReq" + count + "')\" onkeydown=\"clean('axnReq" + count + "')\" onkeyup=\"clean('axnReq" + count + "')\">" + requiredAction + "</td>");
-                                                            out.print("<td>" + dueDate + "</td>");
-                                                            out.print("<td><button class='btn btn-danger btn-circle' type='button' id='btnDelete' title='Remove row'><i class='fa fa-trash' aria-hidden='true'></i></button></td>");
-                                                            out.print("</tr>");
-                                                        }
-                                                    } catch (SQLException e) {
-                                                        out.println(e);
+                                                    String[] dueDate = activity_due_date.split("::");
+                                                    String[] activityDate = activity_date.split("::");
+                                                    String[] activityName = activity_name.split("::");
+                                                    String[] requiredAction = activity_action_required.split("::");
+                                                    String[] activityOutcome = activity_outcome.split("::");
+                                                    String department = "ICT department";
+
+                                                    for (int i = 0; i < dueDate.length; i++) {
+                                                        out.print("<tr>");
+                                                        out.print("<td>" + (i + 1) + "</td>");
+                                                        out.print("<td>" + activityDate[i] + "</td>");
+                                                        out.print("<td id='actvty" + i + "' contenteditable='true' onload=\"clean('actvty" + i + "')\" onkeydown=\"clean('actvty" + i + "')\" onkeyup=\"clean('actvty" + i + "')\">" + activityName[i] + "</td>");
+                                                        out.print("<td id='actvtOutcome" + i + "' contenteditable='true' onload=\"clean('actvtOutcome" + i + "')\" onkeydown=\"clean('actvtOutcome" + i + "')\" onkeyup=\"clean('actvtOutcome" + i + "')\">" + activityOutcome[i] + "</td>");
+                                                        out.print("<td>" + mentor + "</td>");
+                                                        out.print("<td>" + department + "</td>");
+                                                        out.print("<td id='axnReq" + i + "' contenteditable='true' onload=\"clean('axnReq" + i + "')\" onkeydown=\"clean('axnReq" + i + "')\" onkeyup=\"clean('axnReq" + i + "')\">" + requiredAction[i] + "</td>");
+                                                        out.print("<td>" + dueDate[i] + "</td>");
+                                                        out.print("<td><button class='btn btn-danger btn-circle' type='button' id='btnDelete' title='Remove row'><i class='fa fa-trash' aria-hidden='true'></i></button></td>");
+                                                        out.print("</tr>");
                                                     }
                                                 %>
                                             </tbody>
@@ -585,7 +544,7 @@ Outcomes based.</textarea>
                                                         Database DB = new Database();
                                                         Connection con = DB.getCon1();
                                                         Statement st = con.createStatement();
-                                                        st.executeQuery("SELECT SUM(IF(ISNULL(applicant_id) = 0 AND status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1, 1, 0)) iin, SUM(IF(ISNULL(applicant_id) = 0 AND status_id = 2 AND TIMESTAMPDIFF(MONTH, date, " + formatterSQL.format(LocalDate.parse(request.getParameter("creationDate"))) + ") <= " + months + ",1,0)) oout FROM intern_sla t1 WHERE sla_id = " + sla_id + ";");
+                                                        st.executeQuery("SELECT SUM(IF(ISNULL(applicant_id) = 0 AND status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1, 1, 0)) iin, SUM(IF(ISNULL(applicant_id) = 0 AND status_id = 2 AND TIMESTAMPDIFF(MONTH, date, " + creationDate + ") <= " + months + ",1,0)) oout FROM intern_sla t1 WHERE sla_id = " + sla_id + ";");
                                                         ResultSet rs = st.getResultSet();
                                                         while (rs.next()) {
                                                             in = rs.getInt("iin");
@@ -630,16 +589,13 @@ Outcomes based.</textarea>
                                         <%if (companyName.equalsIgnoreCase("Border ICT & Cabling Service") && progType.equalsIgnoreCase("internship")) {%>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="achievements" id="achievements" class="form-control" minlength="30" maxlength="400" onload="clean('achievements'), charCountr('tbA', 'achievements')" onkeyup="clean('achievements'), charCountr('tbA', 'achievements')" onkeydown="clean('achievements')" rows="6" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-* Scrum Fundamental and scrum Master
-* Newsletters for previous months
-* Installation of Oracle Virtual Box machine
-* Installation of Statistical Package for the Social Sciences (SPSS) on student computers</textarea>
+<%=achievements%></textarea>
                                         </div>
                                         <div id="tbA" style="font-size: small;"></div>
                                         <%} else {%>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="achievements" id="achievements" class="form-control" minlength="30" maxlength="400" onload="clean('achievements'), charCountr('tbA', 'achievements')" onkeyup="clean('achievements'), charCountr('tbA', 'achievements')" onkeydown="clean('achievements')" rows="6" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-The learners have learnt to work on their own and also in teams. They Have also obtained 2 scrum certificates, Scrum Fundamentals and Scrum Master.</textarea>
+<%=achievements%></textarea>
                                         </div>
                                         <div id="tbA" style="font-size: small;"></div>
                                         <%}%>
@@ -650,14 +606,14 @@ The learners have learnt to work on their own and also in teams. They Have also 
                                             </tr>
                                             <tr>
                                                 <td>Date</td>
-                                                <td id="compylDate">: <%=creationDateSQL%></td>
+                                                <td id="compylDate">: <%=creationDate%></td>
                                             </tr>
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="btn-group checkbox float-right">
-                                                    <label> <input type="checkbox" name="status" value="2" title="Only if you DO NOT plan on editing later" onclick="return confirm('If this button is checked, this report will be generated as a PDF. Would you like to continue?')">
-                                                        create report
+                                                    <label title="Only if you DO NOT plan on editing later"> <input type="checkbox" name="status" value="2" title="Only if you DO NOT plan on editing later" onclick="return confirm('If this button is checked, this report will be generated as a PDF. Would you like to continue?')">
+                                                        confirm submission
                                                     </label>
                                                 </div>
                                             </div>
@@ -666,7 +622,7 @@ The learners have learnt to work on their own and also in teams. They Have also 
                                             <div class="col-lg-12">
                                                 <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>	
                                                 <div class="btn-group float-right">
-                                                    <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()" title="If you plan on editing later"><i class="fa fa-save"></i> save report</button>
+                                                    <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()" title="If you plan on editing later"><i class="fa fa-save"></i> update report</button>
                                                 </div>
                                             </div>
                                         </div>

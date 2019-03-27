@@ -75,7 +75,7 @@
                                     <i class="fa fa-user"></i>
                                     <%
                                     	if (request.getSession().getAttribute("username") == null) {
-                                    		response.sendRedirect(request.getContextPath() + "/SiteController?action=login");
+                                    		response.sendRedirect(request.getContextPath() + "/DashboardController?action=destroy");
                                     	} else {
                                     		out.print(new Caps().toUpperCaseFirstLetter(request.getSession().getAttribute("First_Name").toString()));
                                     	}
@@ -187,7 +187,7 @@
                                                                                 });
                                                                             });
                                                                         </script>
-                                                                        <table id="example<%=sla_id%>" class="table table-hover table-sm" style="width: 100%;">
+                                                                        <table id="example<%=sla_id%>" class="table table-hover table-sm table-responsive text-nowrap" style="width: 100%;">
                                                                             <thead class="thead-light">
                                                                                 <tr>
                                                                                     <th>No.</th>
@@ -261,7 +261,7 @@
                                                                                 });
                                                                             });
                                                                         </script>
-                                                                        <table id="example<%=sla_id%>" class="table table-hover table-sm" style="width: 100%;">
+                                                                        <table id="example<%=sla_id%>" class="table table-hover table-sm table-responsive text-nowrap" style="width: 100%;">
                                                                             <thead class="thead-light">
                                                                                 <tr>
                                                                                     <th>No.</th>

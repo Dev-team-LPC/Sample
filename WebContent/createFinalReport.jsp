@@ -10,7 +10,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
-        <title>Quarterly Reports - generation</title>
+        <title>Final Reports - generation</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  		
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round" rel="stylesheet">
@@ -104,7 +104,7 @@
                     <br>
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="<%=request.getContextPath()%>/DashboardController?action=dashboard">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports">Quarterly Reports</a></li>
+                        <li class="breadcrumb-item"><a href="<%=request.getContextPath()%>/DashboardController?action=final-reports">Final Reports</a></li>
                         <li class="breadcrumb-item active"> Create Report</li>
                     </ol>
                     ${message}
@@ -117,7 +117,7 @@
                             <li data-target="#myCatouselIndicator" data-slide-to="4"></li>
                         </ol>
                         <div class="carousel-inner">
-                            <form action="<%=request.getContextPath()%>/DashboardController?action=save-quarterly-report" method="POST">
+                            <form action="<%=request.getContextPath()%>/DashboardController?action=save-final-report" method="POST">
                                 <input name="sla" type="hidden" value="<%=sla_id%>"/> 
                                 <input name="months" type="hidden" value="<%=months%>"/>
                                 <div class="carousel-item active">
@@ -153,7 +153,7 @@
                                                 <td>: <%=companyName%></td>
                                             </tr>
                                             <tr>
-                                                <td>Date of quarterly report</td>
+                                                <td>Date of final report</td>
                                                 <td>: <input id="myDate" type="text" name="creationDate" value="<%=creationDateSQL%>" onchange="setDateSame()" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD"></td>                                            
                                             </tr>
                                             <tr>
@@ -191,7 +191,7 @@
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i>  back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
                                                 </div>
@@ -227,7 +227,7 @@ The project implementation methodology adopted by <%=companyName%> is Scrum. It 
                                         <div id="textCountB" style="font-size: small;"></div>
 
                                         <h4>Methodology Diagram <i style="font-size: small;">(optional)</i></h4>
-                                        <img src="images/scrum_diagram.png" class="img-fluid" style="width:100%" alt="Scrum diagram">
+                                        <img src="images/scrum_diagram_1.png" class="img-fluid" style="width:100%" alt="Scrum diagram">
 
                                         <h4>About Methodology</h4>
                                         <div class="form-group shadow-textarea">
@@ -337,15 +337,61 @@ Outcomes based.</textarea>
                                         </div>
                                         <div id="textCountE" style="font-size: small;"></div>
                                         <%}%>
+                                        <table class="table table-sm table-light table-hover table-bordered" id="placementTable">
+                                            <thead style="background-color: #d6d8d9; color: #1b1e21; border: 1px solid #c0c8ca;">
+                                                <tr>
+                                                    <th>No.</th>
+                                                    <th>Surname</th>
+                                                    <th>Name</th>
+                                                    <th>Identity Number</th>
+                                                    <th>Gender</th>
+                                                    <th id="location">Placement</th>
+                                                    <th>Employer</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <%
+                                                    try {
+                                                        Database DB = new Database();
+                                                        Connection con = DB.getCon1();
+                                                        Statement st = con.createStatement();
+                                                        st.executeQuery("SELECT Surname, First_Name, id_number, IF(applicant_gender_id = 1, \"Female\", \"Male\") gender, (SELECT company_name FROM sla INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id WHERE sla.id = t1.sla_id) company FROM intern_sla t1 INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = t1.applicant_id INNER JOIN applicants ON applicants.id = t1.applicant_id INNER JOIN sla ON t1.sla_id = sla.id WHERE sla_id = " + sla_id + " AND t1.status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1 ORDER BY Surname ASC;");
+                                                        ResultSet rs = st.getResultSet();
+                                                        int count = 0;
+                                                        while (rs.next()) {
+                                                            count++;
+                                                            String surname = new Caps().toUpperCaseFirstLetter(rs.getString("Surname"));
+                                                            String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name"));
+                                                            String id = rs.getString("id_number");
+                                                            String gender = rs.getString("gender");
+                                                            String company = rs.getString("company");
+                                                            String location = "Currently at";
+                                                            out.print("<tr>");
+                                                            out.print("<td>" + count + "</td>");
+                                                            out.print("<td>" + surname + "</td>");
+                                                            out.print("<td>" + name + "</td>");
+                                                            out.print("<td>" + id + "</td>");
+                                                            out.print("<td>" + gender + "</td>");
+                                                            out.print("<td id='loc8xn" + count + "' contenteditable='true' onload=\"clean('loc8xn" + count + "')\" onkeydown=\"clean('loc8xn" + count + "')\" onkeyup=\"clean('loc8xn" + count + "')\">" + location + "</td>");
+                                                            out.print("<td>" + company + "</td>");
+                                                            out.print("</tr>");
+                                                        }
+                                                    } catch (SQLException e) {
+                                                        out.println(e);
+                                                    }
+                                                %>
+                                            </tbody>
+                                        </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i>  back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-secondary" title="go to the previous section" onclick="$('.carousel').carousel('prev')"><i class="fa fa-chevron-left"></i> previous</button>
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
                                                 </div>
                                             </div>
                                         </div>
+                                        <input type="hidden" id="array6" name="array6"/>
                                     </div>
                                 </div>
                                 <div class="carousel-item">
@@ -435,7 +481,7 @@ Outcomes based.</textarea>
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i>  back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-secondary" title="go to the previous section" onclick="$('.carousel').carousel('prev')"><i class="fa fa-chevron-left"></i> previous</button>
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
@@ -606,7 +652,7 @@ Outcomes based.</textarea>
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i>  back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-secondary" title="go to the previous section" onclick="$('.carousel').carousel('prev')"><i class="fa fa-chevron-left"></i> previous</button>
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
@@ -624,7 +670,7 @@ Outcomes based.</textarea>
                                                     <button role="button" type="button" class="btn btn-md btn-secondary" title="go to the previous section" onclick="$('.carousel').carousel('prev')"><i class="fa fa-chevron-left"></i> previous</button>
                                                 </div>
                                             </div>
-                                        </div>                                    
+                                        </div>              
                                         <hr class="my-9">
                                         <h4>learners have achieved the following:</h4>
                                         <%if (companyName.equalsIgnoreCase("Border ICT & Cabling Service") && progType.equalsIgnoreCase("internship")) {%>
@@ -656,15 +702,15 @@ The learners have learnt to work on their own and also in teams. They Have also 
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="btn-group checkbox float-right">
-                                                    <label> <input type="checkbox" name="status" value="2" title="Only if you DO NOT plan on editing later" onclick="return confirm('If this button is checked, this report will be generated as a PDF. Would you like to continue?')">
-                                                        create report
+                                                    <label> <input type="checkbox" name="status" value="2" title="Only if you DO NOT plan on editing later" onclick="return confirm('If this button is checked, this report will be generated as a PDF? Once done, this action cannot be undone.')">
+                                                        confirm submission
                                                     </label>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>	
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i>  back</a>	
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()" title="If you plan on editing later"><i class="fa fa-save"></i> save report</button>
                                                 </div>
@@ -690,12 +736,14 @@ The learners have learnt to work on their own and also in teams. They Have also 
             //table data storage
             function saveTableData() {
                 var myTab = document.getElementById('activityTable');
+                var myTab1 = document.getElementById('placementTable');
                 var index = document.getElementById("activity").cellIndex;
                 var index1 = document.getElementById("outcome").cellIndex;
                 var index2 = document.getElementById("axnRequired").cellIndex;
                 var index3 = document.getElementById("activityDate").cellIndex;
                 var index4 = document.getElementById("activityDueDate").cellIndex;
-                var arr = [], arr1 = [], arr2 = [], arr3 = [], arr4 = [];
+                var index5 = document.getElementById("location").cellIndex;
+                var arr = [], arr1 = [], arr2 = [], arr3 = [], arr4 = [], arr5 =[];
 
                 for (i = 1; i < myTab.rows.length; i++) {
                     var objCells = myTab.rows.item(i).cells;
@@ -712,6 +760,15 @@ The learners have learnt to work on their own and also in teams. They Have also 
                     document.getElementById("array3").value = arr2.join("::");
                     document.getElementById("array4").value = arr3.join("::");
                     document.getElementById("array5").value = arr4.join("::");
+                }
+                
+                for (i = 1; i < myTab1.rows.length; i++) {
+                    var objCells1 = myTab1.rows.item(i).cells;
+
+                    for (var j = index5; j <= index5; j++) {
+                        arr5.push(objCells1.item(j).innerHTML);
+                    }
+                    document.getElementById("array6").value = arr5.join("::");
                 }
             }
             //datepicker

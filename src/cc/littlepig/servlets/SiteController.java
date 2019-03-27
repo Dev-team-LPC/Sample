@@ -40,6 +40,7 @@ public class SiteController extends HttpServlet {
 			request.getRequestDispatcher("login.jsp").forward(request, response);
 			break;
 		default:
+			request.getRequestDispatcher("urlUnknown.jsp").forward(request, response);
 			break;
 		}
 	}
@@ -55,6 +56,7 @@ public class SiteController extends HttpServlet {
 			break;
 
 		default:
+			request.getRequestDispatcher("urlUnknown.jsp").forward(request, response);
 			break;
 		}
 	}
@@ -64,6 +66,7 @@ public class SiteController extends HttpServlet {
 		String password = request.getParameter("password");
 		String firstName = null;
 		String lastName = null;
+		String user_id = null;
 		String encryptedPassword = null;		
 		String pw_hash = null;
 
@@ -76,6 +79,7 @@ public class SiteController extends HttpServlet {
 					+ "WHERE email ='" + username + "';");
 			ResultSet rs = st.getResultSet();        
 			if (rs.next()) {
+				user_id = rs.getString("id");
 				firstName = rs.getString("First_Name");
 				lastName = rs.getString("Surname");
 				encryptedPassword = (String) rs.getString("encrypted_password");
@@ -92,10 +96,11 @@ public class SiteController extends HttpServlet {
 			//Invalidating session if any
 			request.getSession().invalidate();
 			HttpSession session = request.getSession(true);
-			session.setMaxInactiveInterval(18000);
+//			session.setMaxInactiveInterval(5);
 			session.setAttribute("username", username);
 			session.setAttribute("First_Name", firstName);
 			session.setAttribute("Surname", lastName);
+			session.setAttribute("id", user_id);
 			String encode = response.encodeURL(request.getContextPath());
 			response.sendRedirect(encode+"/DashboardController?action=dashboard");
 			} else {
