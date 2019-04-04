@@ -28,56 +28,57 @@
         <link rel="stylesheet" href="css/reports-customstyle.css">
     </head>
     <body>
-        <%!public static String report_id, mentor, months, sla_id, creationDate, learnrCount = "", sla_name = "",
+        <%!public static String mentor, months, sla_id, creationDate, learnrCount = "", sla_name = "", reportType = "",
                     companyName = "", progType = "", managerName = "", managerSurname = "", managerTel = "", managerSign = "",
                     sdlNum = "", agredidationNum = "", startDate = "", endDate = "", logo = "", managerCell = "",
                     managerMail = "", managerAddr = "", introduction = "", implementation = "", implementationDesc = "",
-                    plan = "", placement = "", achievements = "", activity_date = "", activity_due_date = "",
-                    activity_name = "", activity_outcome = "", activity_action_required = "", status, location="";%>
+                    plan = "", placement = "", achievements = "", activity_date = "", activity_due_date = "", location = "", 
+                    activity_name = "", activity_outcome = "", activity_action_required = "", quarter = "", status;%>
         <%
-            report_id = request.getParameter("report_id");
+            String report_id = request.getParameter("report_id");
             sla_id = request.getParameter("sla_id");
-            months = request.getParameter("months");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM uuuu");
 
             try {
                 Database DB = new Database();
                 Connection con = DB.getCon1();
                 Statement st = con.createStatement();
-                st.executeQuery("SELECT sla.type, sla.Name, creation_date, sla.start_date, sla.end_date, sla_company_details.company_name, sla_report.created_at, sla_project_manager.name, sla_project_manager.surname, cellphone, telephone, email, sla_company_details.address, CONCAT(sla_company_details.representative_employer_name,' ',sla_company_details.representative_employer_surname) mentor, introduction, methodology, methodology_details, plan, placement, placement_location, achievements, activity_date, activity_due_date, activity_name, activity_outcome, activity_action_required, sla_report_status.status FROM sla_report INNER JOIN sla_report_type ON sla_report_type.id = sla_report.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_report.report_status_id INNER JOIN sla ON sla.id = sla_report.sla_id INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_report.user_id INNER JOIN sla_company_details ON sla_company_details.id = sla_report.company_details_id INNER JOIN sla_project_manager ON sla_project_manager.id = sla_report.project_manager_id WHERE sla_report.id = " + report_id + ";");
+                st.executeQuery("SELECT sla.id, sla.Name, sla.type, sla.start_date, sla.end_date, sla_company_details.company_name, sla_company_details.address, CONCAT(sla_company_details.representative_employer_name,' ', sla_company_details.representative_employer_surname) mentor, sla_project_manager.name, sla_project_manager.surname, sla_project_manager.cellphone, sla_project_manager.email, sla_project_manager.telephone, sla_reports.report_date, sla_reports.report_status_id, sla_report_type.type, sla_reports_final.month_limit, sla_reports_final.introduction, sla_reports_final.methodology, sla_reports_final.methodology_details, sla_reports_final.strategic_plan, sla_reports_final.work_placement, sla_reports_final.achievements, sla_reports_learner_placement.placement, if(NOW() <= DATE_ADD(start_date, INTERVAL 3 MONTH), 'First Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 6 MONTH), 'Second Quarter', If(NOW() <= DATE_ADD(start_date, INTERVAL 9 MONTH), 'Third Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 12 MONTH), 'Fourth Quarter', 'null')))) quarter FROM sla_reports INNER JOIN sla ON sla.id = sla_reports.sla_id INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id INNER JOIN sla_project_manager ON sla_project_manager.id = sla_company_details.project_manager_id INNER JOIN sla_report_type ON sla_report_type.id = sla_reports.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_reports.report_status_id INNER JOIN sla_reports_final ON sla_reports_final.report_id = sla_reports.id INNER JOIN sla_reports_learner_placement ON sla_reports_learner_placement.final_report_id = sla_reports_final.id WHERE sla_reports.id = "+report_id+";");
                 ResultSet rs = st.getResultSet();
 
                 while (rs.next()) {
+                	quarter = (String) rs.getString("quarter");
+                    sla_id = (String) rs.getString("sla.id");
                     progType = (String) rs.getString("sla.type");
-                    sla_name = (String) rs.getString("sla.Name").trim();
-                    creationDate = (String) rs.getString("creation_date");
+                    sla_name = (String) rs.getString("sla.Name");
                     startDate = (String) rs.getString("sla.start_date");
                     endDate = (String) rs.getString("sla.end_date");
                     companyName = (String) rs.getString("sla_company_details.company_name");
+                    managerAddr = (String) rs.getString("sla_company_details.address");
                     managerName = (String) rs.getString("sla_project_manager.name");
                     managerSurname = (String) rs.getString("sla_project_manager.surname");
-                    managerCell = (String) rs.getString("cellphone");
-                    managerTel = (String) rs.getString("telephone");
-                    managerMail = (String) rs.getString("email");
-                    managerAddr = (String) rs.getString("sla_company_details.address");
-                    introduction = (String) rs.getString("introduction");
-                    implementation = (String) rs.getString("methodology");
-                    implementationDesc = (String) rs.getString("methodology_details");
-                    plan = (String) rs.getString("plan");
-                    placement = (String) rs.getString("placement");
-                    location = (String) rs.getString("placement_location");
-                    achievements = (String) rs.getString("achievements");
-                    activity_date = (String) rs.getString("activity_date");
-                    activity_due_date = (String) rs.getString("activity_due_date");
-                    activity_name = (String) rs.getString("activity_name");
-                    activity_outcome = (String) rs.getString("activity_outcome");
-                    activity_action_required = (String) rs.getString("activity_action_required");
-                    status = (String) rs.getString("sla_report_status.status");
+                    managerCell = (String) rs.getString("sla_project_manager.cellphone");
+                    managerTel = (String) rs.getString("sla_project_manager.telephone");
+                    managerMail = (String) rs.getString("sla_project_manager.email");
+                    creationDate = (String) rs.getString("sla_reports.report_date");
+                    months = (String) rs.getString("sla_reports_final.month_limit");
+                    introduction = (String) rs.getString("sla_reports_final.introduction");
+                    implementation = (String) rs.getString("sla_reports_final.methodology");
+                    implementationDesc = (String) rs.getString("sla_reports_final.methodology_details");
+                    plan = (String) rs.getString("sla_reports_final.strategic_plan");
+                    placement = (String) rs.getString("sla_reports_final.work_placement");
+                    achievements = (String) rs.getString("sla_reports_final.achievements");
+                    status = (String) rs.getString("sla_reports.report_status_id");
+                    reportType = (String) rs.getString("sla_report_type.type");
+                    location = (String) rs.getString("sla_reports_learner_placement.placement");
                     mentor = (String) rs.getString("mentor");
                 }
             } catch (SQLException e) {
                 System.out.println(e);
             }
+        if(status.equals("2")){
+        	getServletContext().getRequestDispatcher("/GenerateFinalReport?report_id="+report_id+"&report_type="+reportType+"").forward(request, response);
+        }
         %>
         <div class="d-flex" id="wrapper">
             <!-- Page Content -->
@@ -97,7 +98,7 @@
                                     <%
                                         if (request.getSession().getAttribute("username") == null) {
                                             response.sendRedirect(request.getContextPath() + "/DashboardController?action=destroy");
-                                        } else {
+                                        } else {                                        
                                             out.print(new Caps().toUpperCaseFirstLetter(request.getSession().getAttribute("First_Name").toString()));
                                         }
                                     %>
@@ -128,7 +129,7 @@
                             <li data-target="#myCatouselIndicator" data-slide-to="4"></li>
                         </ol>
                         <div class="carousel-inner">
-                            <form action="<%=request.getContextPath()%>/DashboardController?action=save-final-report" method="POST">
+                            <form action="<%=request.getContextPath()%>/DashboardController?action=save-final-report&report_id=<%=report_id%>" method="POST">
                                 <input name="sla" type="hidden" value="<%=sla_id%>"/> 
                                 <input name="months" type="hidden" value="<%=months%>"/>
                                 <input name="report_id" type="hidden" value="<%=report_id%>"/>
@@ -158,7 +159,7 @@
                                             </tr>
                                             <tr>
                                                 <td>Report Period (Quarter)</td>
-                                                <td>: </td>
+                                                <td>: <%=quarter%></td>
                                             </tr>
                                             <tr>
                                                 <td>Employer’s Name</td>
@@ -166,7 +167,7 @@
                                             </tr>
                                             <tr>
                                                 <td>Date of final report</td>
-                                                <td>: <input id="myDate" type="text" name="creationDate" value="<%=creationDate%>" onchange="setDateSame()" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD"></td>                                            
+                                                <td>: <input style="background-color:#fff;" id="myDate" type="text" name="creationDate" value="<%=creationDate%>" readonly onchange="setDateSame()" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD"></td>                                            
                                             </tr>
                                             <tr>
                                                 <td>Start date</td>
@@ -238,7 +239,7 @@
                                         </div>
                                         <div id="textCountB" style="font-size: small;"></div>
 
-                                        <h4>Methodology Diagram <i style="font-size: small;">(optional)</i></h4>
+                                        <h4>Methodology Diagram</h4>
                                         <img src="images/scrum_diagram_1.png" class="img-fluid" style="width:100%" alt="Scrum diagram">
 
                                         <h4>About Methodology</h4>
@@ -320,7 +321,7 @@
                                         </div>
                                         <div id="textCountE" style="font-size: small;"></div>
                                         <%}%>
-                                        <table class="table table-sm table-light table-hover table-bordered" id="placementTable">
+										<table class="table table-sm table-light table-hover table-bordered" id="placementTable">
                                             <thead style="background-color: #d6d8d9; color: #1b1e21; border: 1px solid #c0c8ca;">
                                                 <tr>
                                                     <th>No.</th>
@@ -334,37 +335,37 @@
                                             </thead>
                                             <tbody>
                                                 <%
-                                                    try {
-                                                        Database DB = new Database();
-                                                        Connection con = DB.getCon1();
-                                                        Statement st = con.createStatement();
-                                                        st.executeQuery("SELECT Surname, First_Name, id_number, IF(applicant_gender_id = 1, \"Female\", \"Male\") gender, (SELECT company_name FROM sla INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id WHERE sla.id = t1.sla_id) company FROM intern_sla t1 INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = t1.applicant_id INNER JOIN applicants ON applicants.id = t1.applicant_id INNER JOIN sla ON t1.sla_id = sla.id WHERE sla_id = " + sla_id + " AND t1.status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1 ORDER BY Surname ASC;");
-                                                        ResultSet rs = st.getResultSet();
-                                                        String[] place = location.split("::");
-
-                                                        for (int i = 0; i < place.length && rs.next(); i++) {
-                                                            String surname = new Caps().toUpperCaseFirstLetter(rs.getString("Surname"));
-                                                            String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name"));
-                                                            String id = rs.getString("id_number");
-                                                            String gender = rs.getString("gender");
-                                                            String company = rs.getString("company");
-                                                            String location = "Currently at";
-                                                            out.print("<tr>");
-                                                            out.print("<td>" + (i+1) + "</td>");
-                                                            out.print("<td>" + surname + "</td>");
-                                                            out.print("<td>" + name + "</td>");
-                                                            out.print("<td>" + id + "</td>");
-                                                            out.print("<td>" + gender + "</td>");
-                                                            out.print("<td id='loc8xn" + i + "' contenteditable='true' onload=\"clean('loc8xn" + i + "')\" onkeydown=\"clean('loc8xn" + i + "')\" onkeyup=\"clean('loc8xn" + i + "')\">" + place[i] + "</td>");
-                                                            out.print("<td>" + company + "</td>");
-                                                            out.print("</tr>");
-                                                        }
-                                                    } catch (SQLException e) {
-                                                        out.println(e);
+                                                try {
+                                                    Database DB = new Database();
+                                                    Connection con = DB.getCon1();
+                                                    Statement st = con.createStatement();
+                                                    st.executeQuery("SELECT Surname, First_Name, id_number, IF(applicant_gender_id = 1, \"Female\", \"Male\") gender, (SELECT company_name FROM sla INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id WHERE sla.id = t1.sla_id) company FROM intern_sla t1 INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = t1.applicant_id INNER JOIN applicants ON applicants.id = t1.applicant_id INNER JOIN sla ON t1.sla_id = sla.id WHERE sla_id = " + sla_id + " AND t1.status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1 ORDER BY Surname ASC;");
+                                                    ResultSet rs = st.getResultSet();
+                                                    String [] place = location.split("::");
+                                                    String surname = "", name = "", id = "", gender = "", company = "";
+                                                    
+                                                    for (int i = 0; i < place.length && rs.next(); i++) {
+                                                        surname = new Caps().toUpperCaseFirstLetter(rs.getString("Surname"));
+                                                        name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name"));
+                                                        id = rs.getString("id_number");
+                                                        gender = rs.getString("gender");
+                                                        company = rs.getString("company");                                                    	
+                                                        out.print("<tr>");
+                                                        out.print("<td>" + (i+1) + "</td>");
+                                                        out.print("<td>" + surname + "</td>");
+                                                        out.print("<td>" + name + "</td>");
+                                                        out.print("<td>" + id + "</td>");
+                                                        out.print("<td>" + gender + "</td>");
+                                                        out.print("<td id='loc8xn" + i + "' contenteditable='true' onload=\"clean('loc8xn" + i + "')\" onkeydown=\"clean('loc8xn" + i + "')\" onkeyup=\"clean('loc8xn" + i + "')\">" + place[i] + "</td>");
+                                                        out.print("<td>" + company + "</td>");
+                                                        out.print("</tr>");
                                                     }
+                                                } catch (SQLException e) {
+                                                    out.println(e);
+                                                }
                                                 %>
                                             </tbody>
-                                        </table>                                        
+                                        </table>  
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i>  back</a>
@@ -390,15 +391,6 @@
                                         </div>                                     
                                         <p>Activities which are undertaken for <b style="text-decoration: underline;">workplace</b> learning; when and how these were done in this quarter.</p>
                                         <hr class="my-9">
-                                        <script>
-                                            $(document).ready(function () {
-                                                $("#activityTable").on('click', '#btnDelete', function () {
-                                                    if (confirm("Are you sure you want to delete this row, Once done this action cannot be undone?")) {
-                                                        $(this).closest('tr').remove();
-                                                    }
-                                                });
-                                            });
-                                        </script>
                                         <table
                                             class="table table-sm table-responsive table-light table-hover table-bordered" id="activityTable">
                                             <thead style="background-color: #d6d8d9; color: #1b1e21; border: 1px solid #c0c8ca;">
@@ -416,16 +408,29 @@
                                             </thead>
                                             <tbody>
                                                 <%
-                                                    String[] dueDate = activity_due_date.split("::");
-                                                    String[] activityDate = activity_date.split("::");
-                                                    String[] activityName = activity_name.split("::");
-                                                    String[] requiredAction = activity_action_required.split("::");
-                                                    String[] activityOutcome = activity_outcome.split("::");
-                                                    String department = "ICT department";
-
-                                                    for (int i = 0; i < dueDate.length; i++) {
+                                                try {
+                                        			Database DB = new Database();
+                                        			Connection con = DB.getCon1();
+                                        			Statement st = con.createStatement();
+                                        			st.executeQuery("SELECT task_name, task_outcome, task_date, task_due_date, task_action_required FROM sla_reports INNER JOIN sla_reports_learner_tasks ON sla_reports_learner_tasks.report_id = sla_reports.id WHERE sla_reports.id ="+report_id+";");
+                                        			ResultSet rs = st.getResultSet();
+                                        			String department = "ICT department";
+                                        			String [] dueDate = null;
+                                        			String [] activityDate = null;
+                                        			String [] activityName = null;
+                                        			String [] activityOutcome = null;
+                                        			String [] requiredAction = null;
+                                        			
+                                        			while(rs.next()) {
+	                                                    dueDate = rs.getString("task_due_date").split("::");
+	                                                    activityDate = rs.getString("task_date").split("::");
+	                                                    activityName = rs.getString("task_name").split("::");
+	                                                    activityOutcome = rs.getString("task_outcome").split("::");
+	                                                    requiredAction = rs.getString("task_action_required").split("::");
+                                        			}
+                                        			for(int i = 0; i < dueDate.length; i++){
                                                         out.print("<tr>");
-                                                        out.print("<td>" + (i + 1) + "</td>");
+                                                        out.print("<td>" + (i+1) + "</td>");
                                                         out.print("<td>" + activityDate[i] + "</td>");
                                                         out.print("<td id='actvty" + i + "' contenteditable='true' onload=\"clean('actvty" + i + "')\" onkeydown=\"clean('actvty" + i + "')\" onkeyup=\"clean('actvty" + i + "')\">" + activityName[i] + "</td>");
                                                         out.print("<td id='actvtOutcome" + i + "' contenteditable='true' onload=\"clean('actvtOutcome" + i + "')\" onkeydown=\"clean('actvtOutcome" + i + "')\" onkeyup=\"clean('actvtOutcome" + i + "')\">" + activityOutcome[i] + "</td>");
@@ -436,6 +441,9 @@
                                                         out.print("<td><button class='btn btn-danger btn-circle' type='button' id='btnDelete' title='Remove row'><i class='fa fa-trash' aria-hidden='true'></i></button></td>");
                                                         out.print("</tr>");
                                                     }
+                                        		} catch (SQLException e) {
+                                        			System.out.println(e);
+                                        		}
                                                 %>
                                             </tbody>
                                         </table>
@@ -658,8 +666,8 @@
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <div class="btn-group checkbox float-right">
-                                                    <label title="Only if you DO NOT plan on editing later"> <input type="checkbox" name="status" value="2" title="Only if you DO NOT plan on editing later" onclick="return confirm('If this button is checked, this report will be generated as a PDF. Would you like to continue?')">
+                                                <div class="btn-group checkbox float-right" data-toggle="tooltip" data-placement="top" title="If this button is checked, this report will be saved as a PDF document">
+                                                    <label> <input type="checkbox" name="status" value="2">
                                                         confirm submission
                                                     </label>
                                                 </div>
@@ -667,7 +675,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i>  back</a>	
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=final-reports"><i class="fa fa-arrow-left"></i> back</a>	
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()" title="If you plan on editing later"><i class="fa fa-save"></i> update report</button>
                                                 </div>
@@ -690,6 +698,18 @@
             </div>
         </div>
         <script type="text/javascript">
+			//table row delete
+	    	$(document).ready(function () {
+	            $("#activityTable").on('click', '#btnDelete', function () {
+	                if (confirm("Are you sure you want to delete this row, Once done this action cannot be undone?")) {
+	                    $(this).closest('tr').remove();
+	                }
+	            });
+	        });        
+			//toggle tooltip
+	    	$(document).ready(function(){
+			  $('[data-toggle="tooltip"]').tooltip();   
+			});        
             //table data storage
             function saveTableData() {
                 var myTab = document.getElementById('activityTable');

@@ -159,7 +159,7 @@
                                             </div>
 										<div class="col-auto col-md-6">
                                                 <label for="myDate">Creation Date: </label>   
-                                                <input class="form-control" id="myDate" name="myDate" type="text" name="creationDateQR" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
+                                                <input class="form-control" style="background-color:#fff;" id="myDate" name="myDate" type="text" readonly name="creationDateQR" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
                                             </div>
                                         </div>
                                         <br>
@@ -181,6 +181,11 @@
                                                 <span aria-hidden="true">&times;</span>
                                             </button>
                                         </div>
+										<script type="text/javascript">
+										$(document).ready(function(){
+										  $('[data-toggle="tooltip"]').tooltip();   
+										});
+										</script>
                                         <form action="<%=request.getContextPath()%>/DashboardController?action=generate-quarterly-reports" method="POST">
                                             <div class="modal-body">
                                                 <div class="form-label-group">
@@ -222,11 +227,11 @@
 										<tr>
 											<th>Status</th>
 											<th>SLA Programme</th>
+											<th>Date Created</th>
 											<th>Programme Type</th>
 											<th>Report Type</th>
 											<th>Created By</th>
 											<th>Report Date</th>
-											<th>Date Created</th>
 										</tr>
 									</thead>
 									<%
@@ -236,30 +241,29 @@
 											Database DB = new Database();
 											Connection con = DB.getCon1();
 											Statement st = con.createStatement();
-											st.executeQuery("SELECT sla_report.id, sla_id, sla.type, sla.Name, sla.number_of_learners, CONCAT(First_Name,' ',Surname) creator, creation_date, sla_report.created_at, months, sla_report_type.type , sla_report_status.status FROM sla_report INNER JOIN sla_report_type ON sla_report_type.id = sla_report.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_report.report_status_id INNER JOIN sla ON sla.id = sla_report.sla_id INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_report.user_id WHERE report_type_id = 1;");
+											st.executeQuery("SELECT sla_reports.id, sla_id, sla.type, sla.Name, sla.number_of_learners, CONCAT(First_Name,' ',Surname) creator, report_date, sla_reports.created_at, sla_report_type.type , sla_report_status.status FROM sla_reports INNER JOIN sla_report_type ON sla_report_type.id = sla_reports.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_reports.report_status_id INNER JOIN sla ON sla.id = sla_reports.sla_id INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_reports.user_id WHERE report_type_id = 1;");
 											ResultSet rs = st.getResultSet();
 
 											while (rs.next()) {
-												report_id = (String) rs.getString("sla_report.id").trim().substring(0);
+												report_id = (String) rs.getString("sla_reports.id").trim().substring(0);
 												sla_name = (String) rs.getString("sla.Name").trim();
 												creator = (String) rs.getString("creator");
-												date_created = (String) rs.getString("sla_report.created_at");
+												date_created = (String) rs.getString("sla_reports.created_at");
 												report_type = (String) rs.getString("sla_report_type.type");
 												report_status = (String) rs.getString("sla_report_status.status");
-												report_date = (String) rs.getString("creation_date");
+												report_date = (String) rs.getString("report_date");
 												progType = (String) rs.getString("sla.type");
-												months = (String) rs.getString("months");
 												sla_id = (String) rs.getString("sla_id");
 												learners = (String) rs.getString("sla.number_of_learners");
 									%>
-									<tr class='clickable-row' data-href='<%=request.getContextPath()%>/DashboardController?action=edit-quarterly-reports&report_id=<%=report_id%>&sla_id=<%=sla_id%>&months=<%=months%>' title="click to open report">
+									<tr class='clickable-row' data-href='<%=request.getContextPath()%>/DashboardController?action=edit-quarterly-reports&report_id=<%=report_id%>&sla_id=<%=sla_id%>'  data-toggle="tooltip" data-placement="top" title="click to open report">
 										<td><%=report_status%></td>
 										<td><%=sla_name%></td>
+										<td><%=date_created%></td>
 										<td><%=new Caps().toUpperCaseFirstLetter(progType)%></td>
 										<td><%=report_type%></td>
 										<td><%=creator%></td>
 										<td><%=report_date%></td>
-										<td><%=date_created%></td>
 									</tr>
 									<%
 										}
@@ -287,6 +291,10 @@
         <!-- /#wrapper -->
 
 	<script>
+		//toggle tooltip
+		$(document).ready(function(){
+		  $('[data-toggle="tooltip"]').tooltip();   
+		});
 		//make table row clickable
 	    $(".clickable-row").click(function() {
 	        window.location = $(this).data("href");

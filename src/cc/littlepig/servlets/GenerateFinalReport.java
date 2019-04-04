@@ -54,7 +54,7 @@ public class GenerateFinalReport extends HttpServlet {
 	public static String mentor, months, sla_id, creationDate, learnrCount = "", sla_name = "", companyName = "", progType = "", managerName = "",
 			managerSurname = "", managerTel = "", sdlNum = "", agredidationNum = "",user_id = "", DEST, introduction = "", implementation = "", 
 			implementationDesc = "", plan = "", placement = "", achievements = "", activity_date = "", activity_due_date = "", activity_name = "",
-			activity_outcome = "", activity_action_required = "", myDate = "", myDateSQL = "", report_id = "", location = "";
+			activity_outcome = "", activity_action_required = "", myDate = "", myDateSQL = "", report_id = "", quarter = "", location = "";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -154,6 +154,8 @@ public class GenerateFinalReport extends HttpServlet {
 		PdfAcroForm form = PdfAcroForm.getAcroForm(doc.getPdfDocument(), true);
 
 		String query = "SELECT t1.Name, t1.type, t1.number_of_learners, DATE_FORMAT(t1.start_date,'%d %M %Y') start_date, "
+				+ "if(NOW() <= DATE_ADD(start_date, INTERVAL 3 MONTH), 'First Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 6 MONTH), 'Second Quarter', "
+				+ "if(NOW() <= DATE_ADD(start_date, INTERVAL 9 MONTH), 'Third Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 12 MONTH), 'Fourth Quarter', 'null')))) quarter,"
 				+ "DATE_FORMAT(t1.end_date,'%d %M %Y') end_date, t2.company_name, t2.registration_number, t2.agredidation_number, "
 				+ "t2.logo, t2.address, t2.representative_employer_name, t2.representative_employer_surname, t3.name, t3.surname, t3.cellphone, "
 				+ "t3.telephone, t3.email FROM sla t1 INNER JOIN sla_company_details t2 ON t2.id = t1.company_id INNER JOIN sla_project_manager t3 ON t3.id = t2.project_manager_id WHERE t1.id = " + sla_id + ";";
@@ -166,6 +168,7 @@ public class GenerateFinalReport extends HttpServlet {
 			ResultSet rs = st.getResultSet();
 
 			while (rs.next()) {
+				quarter = (String) rs.getString("quarter");
 				progType = (String) rs.getString("t1.type").trim().substring(0);
 				sla_name = (String) rs.getString("t1.Name").trim();
 				learnrCount = (String) rs.getString("t1.number_of_learners");
@@ -202,7 +205,7 @@ public class GenerateFinalReport extends HttpServlet {
 		Table table1 = new Table(2).setWidth(520).setFontSize(10).setMarginTop(5).setFixedLayout();
 
 		String[] entry1 = {"Programme", progType + " Programme", "SLA number", sla_name, new Caps().toUpperCaseFirstLetter(progType) + " NQF Level",
-				"Level 5", "Report Period (Quarter)", "", "Employer’s Name", companyName, "Date of final report", myDate, "Start date", startDate,
+				"Level 5", "Report Period (Quarter)", quarter, "Employer’s Name", companyName, "Date of final report", myDate, "Start date", startDate,
 				"End date", endDate};
 
 		for (int i = 0; i < entry1.length; i++) {
@@ -373,6 +376,7 @@ public class GenerateFinalReport extends HttpServlet {
 				System.out.println(e);
 			}
 			doc.add(table);
+
 		}
 		return form;
 	}// </editor-fold>

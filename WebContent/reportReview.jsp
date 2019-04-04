@@ -59,21 +59,19 @@
                     <br>
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="<%=request.getContextPath()%>/DashboardController?action=dashboard">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="#" onclick="window.history.go(-2)">Create Reports</a></li>
-                        <li class="breadcrumb-item"><a href="#" onclick="window.history.go(-1)">View Reports</a></li>
+                        <li class="breadcrumb-item"><a href="#" onclick="window.history.go(-1)"><%=request.getParameter("report_type")%> Reports</a></li>
                         <li class="breadcrumb-item active">Download-View Report</li>
                     </ol>
-				${message}
                 <!-- generate report card-->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h4 class="display-9 card-text text-center">The Report was successfully generated!</h4>
+                        <h4 class="display-9 card-text text-center">The <%=request.getParameter("report_type")%>  report was successfully retrieved!</h4>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-sm-4"></div>
                             <div class="col-sm-4 text-center">
-                                <h6 class="card-title font-weight-bold text-primary">You can now download or view the generated report</h6>
+                                <h6 class="card-title font-weight-bold text-primary">You can now download or view the report</h6>
                                 <div class="form-row btn-group">
                                     <div class="text-center">
                                         <button class="btn btn-secondary" onclick="window.history.go(-1);"><i class="fa fa-arrow-left"></i> back</button>

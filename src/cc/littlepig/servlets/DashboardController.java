@@ -1,6 +1,8 @@
 package cc.littlepig.servlets;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -98,7 +100,7 @@ public class DashboardController extends HttpServlet {
 	private void saveFinalReport(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(true);
 		String user_id = (String) session.getAttribute("id");
-		String report_id = request.getParameter("report_id");
+		String report_id =  request.getParameter("report_id");
 		String status = request.getParameter("status");
 		String sla_id = request.getParameter("sla").trim();
 		String date = request.getParameter("creationDate").trim();
@@ -106,6 +108,7 @@ public class DashboardController extends HttpServlet {
 		String intro = request.getParameter("introduction");
 		String methodology = request.getParameter("implementation");
 		String methodologyDesc = request.getParameter("implementationDetails");
+		String methodologyDiagram = request.getParameter("implementationDiagram");
 		String plan = request.getParameter("plan");
 		String placement = request.getParameter("placement");
 		String achievements = request.getParameter("achievements");
@@ -117,19 +120,27 @@ public class DashboardController extends HttpServlet {
 		String activityDueDate = request.getParameter("array5").replace("\"", "'");
 		String location = request.getParameter("array6").replace("\"", "'");
 
-		if (report_id == null) {
-			if (status == null) {
+		if (status == null) {
+			if (report_id == null) {						
 				try {
 					Database DB = new Database();
 					Connection con = DB.getCon1();
 					Statement st = con.createStatement();
-					st.executeUpdate("INSERT INTO sla_report (sla_id, user_id, created_at, creation_date, project_manager_id, company_details_id, report_status_id, report_type_id, months, introduction, methodology, methodology_details, plan, placement, placement_location, achievements, activity_date, activity_due_date, activity_name, activity_outcome, activity_action_required) VALUES ("+ sla_id+ ", "+user_id+", NOW(), '"+date+"',(SELECT project_manager_id FROM sla INNER JOIN sla_company_details ON sla.company_id = sla_company_details.id where sla.id = "+ sla_id +"),(SELECT company_id FROM sla WHERE id = "+ sla_id +"),1,3, "+months+",\""+intro+"\",\""+methodology+"\",\""+methodologyDesc+"\",\""+plan+"\",\""+placement+"\", \""+location+"\" ,\""+achievements+"\",\""+activityDate+"\",\""+activityDueDate+"\",\""+activity+"\",\""+outcome+"\",\""+requiredAxn+"\");");
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 1, 3);");					
+					st.addBatch("SET @myId := LAST_INSERT_ID();");
+					st.addBatch("INSERT INTO sla_reports_final (report_id, month_limit, introduction, methodology, methodology_details, methodology_diagram, strategic_plan, work_placement, achievements) VALUES (@myId, "+months+", \""+intro+"\", \""+methodology+"\", \""+methodologyDesc+"\", \""+methodologyDiagram+"\", \""+plan+"\", \""+placement+"\", \""+achievements+"\");");
+					st.addBatch("INSERT INTO sla_reports_learner_placement (final_report_id, placement) VALUES (LAST_INSERT_ID(), \""+location+"\");");
+					st.addBatch("INSERT INTO sla_reports_learner_tasks (report_id, task_name, task_outcome, task_action_required, task_date, task_due_date) VALUES (@myId, \""+activity+"\", \""+outcome+"\", \""+requiredAxn+"\", \""+activityDate+"\", \""+activityDueDate+"\");");
+					st.executeBatch();
+					con.commit();
 					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
 					request.setAttribute("message", alert);
 					getServletContext().getRequestDispatcher("/final.jsp").forward(request, response);
 				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
 					getServletContext().getRequestDispatcher("/DashboardController?action=generate-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
 				}
@@ -138,48 +149,46 @@ public class DashboardController extends HttpServlet {
 					Database DB = new Database();
 					Connection con = DB.getCon1();
 					Statement st = con.createStatement();
-					st.executeUpdate("INSERT INTO sla_report (sla_id, user_id, created_at, creation_date, project_manager_id, company_details_id, report_status_id, report_type_id, months, introduction, methodology, methodology_details, plan, placement, placement_location, achievements, activity_date, activity_due_date, activity_name, activity_outcome, activity_action_required) VALUES ("+ sla_id+ ", "+user_id+", NOW(), '"+date+"',(SELECT project_manager_id FROM sla INNER JOIN sla_company_details ON sla.company_id = sla_company_details.id where sla.id = "+ sla_id +"),(SELECT company_id FROM sla WHERE id = "+ sla_id +"),2,3, "+months+",\""+intro+"\",\""+methodology+"\",\""+methodologyDesc+"\",\""+plan+"\",\""+placement+"\", \""+location+"\" ,\""+achievements+"\",\""+activityDate+"\",\""+activityDueDate+"\",\""+activity+"\",\""+outcome+"\",\""+requiredAxn+"\");");
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW() WHERE id = "+report_id+";");					
+					st.addBatch("UPDATE sla_reports_final SET introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", methodology_diagram = \""+methodologyDiagram+"\", strategic_plan = \""+plan+"\", work_placement = \""+placement+"\", achievements = \""+achievements+"\" WHERE report_id = "+report_id+";");
+					st.addBatch("UPDATE sla_reports_learner_placement SET placement = \""+location+"\" WHERE final_report_id = (SELECT id FROM sla_reports_final WHERE report_id = "+report_id+");");
+					st.addBatch("UPDATE sla_reports_learner_tasks SET task_name = \""+activity+"\", task_outcome = \""+outcome+"\", task_action_required = \""+requiredAxn+"\", task_date = \""+activityDate+"\", task_due_date = \""+activityDueDate+"\" WHERE report_id = "+report_id+";");
+					st.executeBatch();
+					con.commit();
 					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report updated successfully!</b></div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/GenerateFinalReport?sla="+sla_id+"&months="+months+"&date="+date+"").forward(request, response);
+					getServletContext().getRequestDispatcher("/final.jsp").forward(request, response);
 				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=edit-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
 				}
 			}
 		} else {
-			if (status == null) {
-				try {
-					Database DB = new Database();
-					Connection con = DB.getCon1();
-					Statement st = con.createStatement();
-					st.executeUpdate("UPDATE sla_report SET user_id = "+user_id+", creation_date = '"+date+"', report_status_id = 1, introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", plan = \""+plan+"\", placement = \""+placement+"\", placement_location = \""+location+"\", achievements = \""+achievements+"\", activity_date = \""+activityDate+"\", activity_due_date = \""+activityDueDate+"\", activity_name = \""+activity+"\", activity_outcome = \""+outcome+"\", activity_action_required = \""+requiredAxn+"\" WHERE id = "+report_id+";");
-					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/final.jsp").forward(request, response);
-				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Report could not be created, there was an error: " + e.getMessage() + "</div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
-				}
-			} else {
-				try {
-					Database DB = new Database();
-					Connection con = DB.getCon1();
-					Statement st = con.createStatement();
-					st.executeUpdate("UPDATE sla_report SET user_id = "+user_id+", creation_date = '"+date+"', report_status_id = 2, introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", plan = \""+plan+"\", placement = \""+placement+"\", placement_location = \""+location+"\", achievements = \""+achievements+"\", activity_date = \""+activityDate+"\", activity_due_date = \""+activityDueDate+"\", activity_name = \""+activity+"\", activity_outcome = \""+outcome+"\", activity_action_required = \""+requiredAxn+"\" WHERE id = "+report_id+";");
-					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/GenerateFinalReport?sla="+sla_id+"&months="+months+"&date="+date+"&report_id="+report_id+"").forward(request, response);
-				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Report could not be created, there was an error: " + e.getMessage() + "</div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
-				}
+			try {
+				Database DB = new Database();
+				Connection con = DB.getCon1();
+				Statement st = con.createStatement();
+				con.setAutoCommit(false);
+				st.addBatch("BEGIN;");
+				st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 2, 3);");					
+				st.addBatch("SET @myId := LAST_INSERT_ID();");
+				st.addBatch("INSERT INTO sla_reports_final (report_id, month_limit, introduction, methodology, methodology_details, methodology_diagram, strategic_plan, work_placement, achievements) VALUES (@myId, "+months+", \""+intro+"\", \""+methodology+"\", \""+methodologyDesc+"\", \""+methodologyDiagram+"\", \""+plan+"\", \""+placement+"\", \""+achievements+"\");");
+				st.addBatch("INSERT INTO sla_reports_learner_placement (final_report_id, placement) VALUES (LAST_INSERT_ID(), \""+location+"\");");
+				st.addBatch("INSERT INTO sla_reports_learner_tasks (report_id, task_name, task_outcome, task_action_required, task_date, task_due_date) VALUES (@myId, \""+activity+"\", \""+outcome+"\", \""+requiredAxn+"\", \""+activityDate+"\", \""+activityDueDate+"\");");
+				st.executeBatch();
+				con.commit();
+				con.close();
+				String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
+				request.setAttribute("message", alert);
+				getServletContext().getRequestDispatcher("/final.jsp").forward(request, response);
+			} catch (SQLException e) {
+				String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+				request.setAttribute("message", alert);
+				getServletContext().getRequestDispatcher("/DashboardController?action=generate-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
 			}
 		}
 	}
@@ -187,7 +196,7 @@ public class DashboardController extends HttpServlet {
 	private void saveQuarterlyReport(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(true);
 		String user_id = (String) session.getAttribute("id");
-		String report_id = request.getParameter("report_id");
+		String report_id =  request.getParameter("report_id");
 		String status = request.getParameter("status");
 		String sla_id = request.getParameter("sla").trim();
 		String date = request.getParameter("creationDate").trim();
@@ -195,6 +204,7 @@ public class DashboardController extends HttpServlet {
 		String intro = request.getParameter("introduction");
 		String methodology = request.getParameter("implementation");
 		String methodologyDesc = request.getParameter("implementationDetails");
+		String methodologyDiagram = request.getParameter("implementationDiagram");
 		String plan = request.getParameter("plan");
 		String placement = request.getParameter("placement");
 		String achievements = request.getParameter("achievements");
@@ -205,19 +215,26 @@ public class DashboardController extends HttpServlet {
 		String activityDate = request.getParameter("array4").replace("\"", "'");
 		String activityDueDate = request.getParameter("array5").replace("\"", "'");
 
-		if (report_id == null) {
-			if (status == null) {
+		if (status == null) {
+			if (report_id == null) {						
 				try {
 					Database DB = new Database();
 					Connection con = DB.getCon1();
 					Statement st = con.createStatement();
-					st.executeUpdate("INSERT INTO sla_report (sla_id, user_id, created_at, creation_date, project_manager_id, company_details_id, report_status_id, report_type_id, months, introduction, methodology, methodology_details, plan, placement, achievements, activity_date, activity_due_date, activity_name, activity_outcome, activity_action_required) VALUES ("+ sla_id+ ", "+user_id+", NOW(), '"+date+"',(SELECT project_manager_id FROM sla INNER JOIN sla_company_details ON sla.company_id = sla_company_details.id where sla.id = "+ sla_id +"),(SELECT company_id FROM sla WHERE id = "+ sla_id +"),1,1, "+months+",\""+intro+"\",\""+methodology+"\",\""+methodologyDesc+"\",\""+plan+"\",\""+placement+"\",\""+achievements+"\",\""+activityDate+"\",\""+activityDueDate+"\",\""+activity+"\",\""+outcome+"\",\""+requiredAxn+"\");");
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 1, 1);");					
+					st.addBatch("SET @myId := LAST_INSERT_ID();");
+					st.addBatch("INSERT INTO sla_reports_quarterly (report_id, month_limit, introduction, methodology, methodology_details, methodology_diagram, strategic_plan, work_placement, achievements) VALUES (@myId, "+months+", \""+intro+"\", \""+methodology+"\", \""+methodologyDesc+"\", \""+methodologyDiagram+"\", \""+plan+"\", \""+placement+"\", \""+achievements+"\");");
+					st.addBatch("INSERT INTO sla_reports_learner_tasks (report_id, task_name, task_outcome, task_action_required, task_date, task_due_date) VALUES (@myId, \""+activity+"\", \""+outcome+"\", \""+requiredAxn+"\", \""+activityDate+"\", \""+activityDueDate+"\");");
+					st.executeBatch();
+					con.commit();
 					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
 					request.setAttribute("message", alert);
 					getServletContext().getRequestDispatcher("/quarterly.jsp").forward(request, response);
 				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
 					getServletContext().getRequestDispatcher("/DashboardController?action=generate-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
 				}
@@ -226,48 +243,44 @@ public class DashboardController extends HttpServlet {
 					Database DB = new Database();
 					Connection con = DB.getCon1();
 					Statement st = con.createStatement();
-					st.executeUpdate("INSERT INTO sla_report (sla_id, user_id, created_at, creation_date, project_manager_id, company_details_id, report_status_id, report_type_id, months, introduction, methodology, methodology_details, plan, placement, achievements, activity_date, activity_due_date, activity_name, activity_outcome, activity_action_required) VALUES ("+ sla_id+ ", "+user_id+", NOW(), '"+date+"',(SELECT project_manager_id FROM sla INNER JOIN sla_company_details ON sla.company_id = sla_company_details.id where sla.id = "+ sla_id +"),(SELECT company_id FROM sla WHERE id = "+ sla_id +"),2,1, "+months+",\""+intro+"\",\""+methodology+"\",\""+methodologyDesc+"\",\""+plan+"\",\""+placement+"\",\""+achievements+"\",\""+activityDate+"\",\""+activityDueDate+"\",\""+activity+"\",\""+outcome+"\",\""+requiredAxn+"\");");
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW() WHERE id = "+report_id+";");					
+					st.addBatch("UPDATE sla_reports_quarterly SET introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", methodology_diagram = \""+methodologyDiagram+"\", strategic_plan = \""+plan+"\", work_placement = \""+placement+"\", achievements = \""+achievements+"\" WHERE report_id = "+report_id+";");
+					st.addBatch("UPDATE sla_reports_learner_tasks SET task_name = \""+activity+"\", task_outcome = \""+outcome+"\", task_action_required = \""+requiredAxn+"\", task_date = \""+activityDate+"\", task_due_date = \""+activityDueDate+"\" WHERE report_id = "+report_id+";");
+					st.executeBatch();
+					con.commit();
 					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report updated successfully!</b></div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/GenerateQuarterlyReport?sla="+sla_id+"&months="+months+"&date="+date+"").forward(request, response);
+					getServletContext().getRequestDispatcher("/quarterly.jsp").forward(request, response);
 				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=update-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
 				}
 			}
 		} else {
-			if (status == null) {
-				try {
-					Database DB = new Database();
-					Connection con = DB.getCon1();
-					Statement st = con.createStatement();
-					st.executeUpdate("UPDATE sla_report SET user_id = "+user_id+", creation_date = '"+date+"', report_status_id = 1, introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", plan = \""+plan+"\", placement = \""+placement+"\", achievements = \""+achievements+"\", activity_date = \""+activityDate+"\", activity_due_date = \""+activityDueDate+"\", activity_name = \""+activity+"\", activity_outcome = \""+outcome+"\", activity_action_required = \""+requiredAxn+"\" WHERE id = "+report_id+";");
-					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/quarterly.jsp").forward(request, response);
-				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Report could not be created, there was an error: " + e.getMessage() + "</div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
-				}
-			} else {
-				try {
-					Database DB = new Database();
-					Connection con = DB.getCon1();
-					Statement st = con.createStatement();
-					st.executeUpdate("UPDATE sla_report SET user_id = "+user_id+", creation_date = '"+date+"', report_status_id = 2, introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", plan = \""+plan+"\", placement = \""+placement+"\", achievements = \""+achievements+"\", activity_date = \""+activityDate+"\", activity_due_date = \""+activityDueDate+"\", activity_name = \""+activity+"\", activity_outcome = \""+outcome+"\", activity_action_required = \""+requiredAxn+"\" WHERE id = "+report_id+";");
-					con.close();
-					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/GenerateQuarterlyReport?sla="+sla_id+"&months="+months+"&date="+date+"&report_id="+report_id+"").forward(request, response);
-				} catch (SQLException e) {
-					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> Report could not be created, there was an error: " + e.getMessage() + "</div>";
-					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
-				}
+			try {
+				Database DB = new Database();
+				Connection con = DB.getCon1();
+				Statement st = con.createStatement();
+				con.setAutoCommit(false);
+				st.addBatch("BEGIN;");
+				st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 2, 1);");					
+				st.addBatch("SET @myId := LAST_INSERT_ID();");
+				st.addBatch("INSERT INTO sla_reports_quarterly (report_id, month_limit, introduction, methodology, methodology_details, methodology_diagram, strategic_plan, work_placement, achievements) VALUES (@myId, "+months+", \""+intro+"\", \""+methodology+"\", \""+methodologyDesc+"\", \""+methodologyDiagram+"\", \""+plan+"\", \""+placement+"\", \""+achievements+"\");");
+				st.addBatch("INSERT INTO sla_reports_learner_tasks (report_id, task_name, task_outcome, task_action_required, task_date, task_due_date) VALUES (@myId, \""+activity+"\", \""+outcome+"\", \""+requiredAxn+"\", \""+activityDate+"\", \""+activityDueDate+"\");");
+				st.executeBatch();
+				con.commit();
+				con.close();
+				String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
+				request.setAttribute("message", alert);
+				getServletContext().getRequestDispatcher("/quarterly.jsp").forward(request, response);
+			} catch (SQLException e) {
+				String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+				request.setAttribute("message", alert);
+				getServletContext().getRequestDispatcher("/DashboardController?action=generate-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
 			}
 		}
 	}

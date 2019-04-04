@@ -42,8 +42,7 @@ public class GenerateQuarterlyReport extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	public static String mentor, months, sla_id, creationDate, learnrCount = "", sla_name = "", companyName = "", progType = "", managerName = "",
 			managerSurname = "", managerTel = "", sdlNum = "", agredidationNum = "",user_id = "", DEST, introduction = "", implementation = "", 
-			implementationDesc = "", plan = "", placement = "", achievements = "", activity_date = "", activity_due_date = "", activity_name = "",
-			activity_outcome = "", activity_action_required = "", myDate = "", myDateSQL = "", report_id = "";
+			implementationDesc = "", plan = "", placement = "", achievements = "", myDate = "", myDateSQL = "", report_id = "", quarter = "", reportType = "";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -56,9 +55,9 @@ public class GenerateQuarterlyReport extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HttpSession session = request.getSession();
 		report_id = request.getParameter("report_id");
-		DEST = GlobalConstants.DEST + File.separator + "quarterly reports" + File.separator + "Quarterly Report by " + new Caps().toUpperCaseFirstLetter(String.valueOf(session.getAttribute("First_Name"))) + " " + LocalDate.now().atTime(LocalTime.now()) + ".pdf";
+		reportType = request.getParameter("report_type");
+		DEST = GlobalConstants.DEST + File.separator + "quarterly reports" + File.separator + "Quarterly Report ["+report_id+"].pdf";
 		File file = new File(DEST);
 		file.getParentFile().mkdirs();
 		try {
@@ -66,7 +65,7 @@ public class GenerateQuarterlyReport extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		response.sendRedirect("reportReview.jsp?file=" + DEST);
+		response.sendRedirect("reportReview.jsp?file=" + DEST+"&report_type="+reportType+"");
 	}
 
 	/**
@@ -77,43 +76,34 @@ public class GenerateQuarterlyReport extends HttpServlet {
 	}
 
 	protected void createReport(String dest, HttpServletRequest request) throws Exception {
-		months = request.getParameter("months");
-		sla_id = request.getParameter("sla");
-		creationDate = request.getParameter("creationDate").trim();
 		HttpSession session = request.getSession(true);
 		user_id = (String) session.getAttribute("id");
 		//convert the date format to the required
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM uuuu");
 		DateTimeFormatter formatterSQL = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-		myDate = formatter.format(LocalDate.parse(creationDate));
-		myDateSQL = formatterSQL.format(LocalDate.parse(creationDate));
 		try {
 			Database DB = new Database();
 			Connection con = DB.getCon1();
 			Statement st = con.createStatement();
-			if (report_id == null) {
-				st.executeQuery("SELECT * FROM sla_report WHERE sla_id = "+sla_id+" AND user_id = "+user_id+" AND DATE_ADD(created_at, INTERVAL 40 SECOND) >= NOW();");				
-			} else {
-				st.executeQuery("SELECT * FROM sla_report WHERE id = "+report_id+";");
-			}
+			st.executeQuery("SELECT sla_id, report_date, introduction, methodology, methodology_details, strategic_plan, work_placement, achievements FROM sla_reports INNER JOIN sla_reports_quarterly ON sla_reports_quarterly.report_id = sla_reports.id INNER JOIN sla_reports_learner_tasks ON sla_reports_learner_tasks.report_id = sla_reports.id WHERE sla_reports.id ="+report_id+";");
 			ResultSet rs = st.getResultSet();
 
 			while (rs.next()) {
 				introduction = (String) rs.getString("introduction").trim().substring(0);
 				implementation = (String) rs.getString("methodology").trim();
 				implementationDesc = (String) rs.getString("methodology_details");
-				plan = (String) rs.getString("plan");
-				placement = (String) rs.getString("placement");
+				plan = (String) rs.getString("strategic_plan");
+				placement = (String) rs.getString("work_placement");
 				achievements = (String) rs.getString("achievements");
-				activity_date = (String) rs.getString("activity_date");
-				activity_due_date = (String) rs.getString("activity_due_date");
-				activity_name = (String) rs.getString("activity_name");
-				activity_outcome = (String) rs.getString("activity_outcome");
-				activity_action_required = (String) rs.getString("activity_action_required");
+				sla_id = (String) rs.getString("sla_id");
+				creationDate = (String) rs.getString("report_date");
+
 			}
 		} catch (SQLException e) {
 			System.out.println(e);
 		}
+		myDate = formatter.format(LocalDate.parse(creationDate));
+		myDateSQL = formatterSQL.format(LocalDate.parse(creationDate));
 
 		PdfDocument pdf = new PdfDocument(new PdfWriter(DEST));
 		pdf.getDocumentInfo().setTitle("Quarterly Report");
@@ -129,10 +119,10 @@ public class GenerateQuarterlyReport extends HttpServlet {
 			GenerateQuarterlyReport.addSectionFive(document);
 			PdfFont font = PdfFontFactory.createFont(FontConstants.HELVETICA_BOLD);
 			PdfFont bold = PdfFontFactory.createFont(FontConstants.HELVETICA_BOLD);
-            for (int i = 1; i <= n; i++) {
-            	document.showTextAligned(new Paragraph(String.format("Page %s of %s", i, n)), 559, 20, i, TextAlignment.RIGHT, VerticalAlignment.BOTTOM, 0).setFontSize(9).setFont(font);
-            	document.showTextAligned(new Paragraph(String.format("MICT SETA Progress Report Tool for Internship &WIL Version 1 – 20170126", i, n)), 40, 20, i, TextAlignment.LEFT, VerticalAlignment.BOTTOM, 0).setFontSize(9).setFont(font);
-            }	
+			for (int i = 1; i <= n; i++) {
+				document.showTextAligned(new Paragraph(String.format("Page %s of %s", i, n)), 559, 20, i, TextAlignment.RIGHT, VerticalAlignment.BOTTOM, 0).setFontSize(9).setFont(font);
+				document.showTextAligned(new Paragraph(String.format("MICT SETA Progress Report Tool for Internship &WIL Version 1 – 20170126", i, n)), 40, 20, i, TextAlignment.LEFT, VerticalAlignment.BOTTOM, 0).setFontSize(9).setFont(font);
+			}	
 			document.close();
 		}
 	}
@@ -145,6 +135,8 @@ public class GenerateQuarterlyReport extends HttpServlet {
 		PdfAcroForm form = PdfAcroForm.getAcroForm(doc.getPdfDocument(), true);
 
 		String query = "SELECT t1.Name, t1.type, t1.number_of_learners, DATE_FORMAT(t1.start_date,'%d %M %Y') start_date, "
+				+ "if(NOW() <= DATE_ADD(start_date, INTERVAL 3 MONTH), 'First Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 6 MONTH), 'Second Quarter', "
+				+ "if(NOW() <= DATE_ADD(start_date, INTERVAL 9 MONTH), 'Third Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 12 MONTH), 'Fourth Quarter', 'null')))) quarter,"
 				+ "DATE_FORMAT(t1.end_date,'%d %M %Y') end_date, t2.company_name, t2.registration_number, t2.agredidation_number, "
 				+ "t2.logo, t2.address, t2.representative_employer_name, t2.representative_employer_surname, t3.name, t3.surname, t3.cellphone, "
 				+ "t3.telephone, t3.email FROM sla t1 INNER JOIN sla_company_details t2 ON t2.id = t1.company_id INNER JOIN sla_project_manager t3 ON t3.id = t2.project_manager_id WHERE t1.id = " + sla_id + ";";
@@ -157,6 +149,7 @@ public class GenerateQuarterlyReport extends HttpServlet {
 			ResultSet rs = st.getResultSet();
 
 			while (rs.next()) {
+				quarter = (String) rs.getString("quarter");
 				progType = (String) rs.getString("t1.type").trim().substring(0);
 				sla_name = (String) rs.getString("t1.Name").trim();
 				learnrCount = (String) rs.getString("t1.number_of_learners");
@@ -193,7 +186,7 @@ public class GenerateQuarterlyReport extends HttpServlet {
 		Table table1 = new Table(2).setWidth(520).setFontSize(10).setMarginTop(5).setFixedLayout();
 
 		String[] entry1 = {"Programme", progType + " Programme", "SLA number", sla_name, new Caps().toUpperCaseFirstLetter(progType) + " NQF Level",
-				"Level 5", "Report Period (Quarter)", "", "Employer’s Name", companyName, "Date of quarterly report", myDate, "Start date", startDate,
+				"Level 5", "Report Period (Quarter)", quarter, "Employer’s Name", companyName, "Date of quarterly report", myDate, "Start date", startDate,
 				"End date", endDate};
 
 		for (int i = 0; i < entry1.length; i++) {
@@ -268,16 +261,16 @@ public class GenerateQuarterlyReport extends HttpServlet {
 			Cell cell2 = new Cell();
 			cell2.add(scrumDiagram.scaleAbsolute(519, 150));
 			doc.add(cell2);
-//			Paragraph p9 = new Paragraph("The Scrum Framework implements the cornerstones defined by the Agile Manifesto which emphasises the value of:\n");
-//			doc.add(p9.setFontSize(10).setFont(bold));
-//			List list = new List().setListSymbol("• \t");
-//			if (implementationDesc.contains("*")) {
-//				String [] parts = implementationDesc.split(Pattern.quote("*"));
-//				for (String str : parts) {
-//					list.add(new ListItem(str));
-//				}
-//			}
-//			doc.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
+			//			Paragraph p9 = new Paragraph("The Scrum Framework implements the cornerstones defined by the Agile Manifesto which emphasises the value of:\n");
+			//			doc.add(p9.setFontSize(10).setFont(bold));
+			//			List list = new List().setListSymbol("• \t");
+			//			if (implementationDesc.contains("*")) {
+			//				String [] parts = implementationDesc.split(Pattern.quote("*"));
+			//				for (String str : parts) {
+			//					list.add(new ListItem(str));
+			//				}
+			//			}
+			//			doc.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
 			doc.add(new Paragraph(implementationDesc));
 			Paragraph p11 = new Paragraph("Strategic Plan\n");
 			doc.add(p11.setFont(bold).setFontSize(10).setKeepWithNext(true));
@@ -311,27 +304,27 @@ public class GenerateQuarterlyReport extends HttpServlet {
 			doc.add(new Paragraph(implementation));
 			Paragraph p11 = new Paragraph("Strategic Plan\n");
 			doc.add(p11.setFont(bold).setFontSize(10).setKeepWithNext(true));
-//			List list = new List().setListSymbol("• \t");
-//			if (plan.contains("*")) {
-//				String [] parts = plan.split(Pattern.quote("*"));
-//				for (String str : parts) {
-//					list.add(new ListItem(str));
-//				}
-//			}
-//			doc.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
+			//			List list = new List().setListSymbol("• \t");
+			//			if (plan.contains("*")) {
+			//				String [] parts = plan.split(Pattern.quote("*"));
+			//				for (String str : parts) {
+			//					list.add(new ListItem(str));
+			//				}
+			//			}
+			//			doc.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
 			doc.add(new Paragraph(plan));
 			Paragraph p12 = new Paragraph("Work Placement\n").setKeepWithNext(true);
 			doc.add(p12.setFont(bold).setFontSize(10));
-//			List list1 = new List().setListSymbol("• \t");
-//			if (placement.contains("*")) {
-//				String [] parts = placement.split(Pattern.quote("*"));
-//				for (String str : parts) {
-//					list1.add(new ListItem(str));
-//				}
-//				doc.add(list1.setPaddingLeft(15).setFontSize(10).setFont(font));			
-//			} else {
-				doc.add(new Paragraph(placement));
-//			}
+			//			List list1 = new List().setListSymbol("• \t");
+			//			if (placement.contains("*")) {
+			//				String [] parts = placement.split(Pattern.quote("*"));
+			//				for (String str : parts) {
+			//					list1.add(new ListItem(str));
+			//				}
+			//				doc.add(list1.setPaddingLeft(15).setFontSize(10).setFont(font));			
+			//			} else {
+			doc.add(new Paragraph(placement));
+			//			}
 		}
 		return form;
 	}// </editor-fold>
@@ -371,22 +364,38 @@ public class GenerateQuarterlyReport extends HttpServlet {
 				table4.addCell(c10);
 			}
 		}
-		String [] dueDate = activity_due_date.split("::");
-		String [] activityDate = activity_date.split("::");
-		String [] activityName = activity_name.split("::");
-		String [] requiredAction = activity_action_required.split("::");
-		String [] activityOutcome = activity_outcome.split("::");
 
-		for (int j = 0; j < activityName.length; j++) {
+		try {
+			Database DB = new Database();
+			Connection con = DB.getCon1();
+			Statement st = con.createStatement();
+			st.executeQuery("SELECT task_name, task_outcome, task_date, task_due_date, task_action_required FROM sla_reports INNER JOIN sla_reports_learner_tasks ON sla_reports_learner_tasks.report_id = sla_reports.id WHERE sla_reports.id ="+report_id+";");
+			ResultSet rs = st.getResultSet();
+			String [] activity_date = null;
+			String [] activity_due_date = null;
+			String [] activity_name = null;
+			String [] activity_outcome = null;
+			String [] activity_action_required = null;
 			String department = "ICT department";
-			String[] array = {activityDate[j], activityName[j], activityOutcome[j], mentor, department, requiredAction[j], dueDate[j]};
-			for (int i = 0; i < array.length; i++) {
-				Cell c19 = new Cell().add(new Paragraph(array[i])).setKeepTogether(true);
-				table4.addCell(c19);
+			
+			while (rs.next()) {
+			activity_date = rs.getString("task_date").split("::");
+			activity_due_date = rs.getString("task_due_date").split("::");
+			activity_name = rs.getString("task_name").split("::");
+			activity_outcome = rs.getString("task_outcome").split("::");
+			activity_action_required = rs.getString("task_action_required").split("::");
 			}
+			for (int j = 0; j < activity_action_required.length; j++) {
+				String[] array = {activity_date[j], activity_name[j], activity_outcome[j], mentor, department, activity_action_required[j], activity_due_date[j]};
+				for (int i = 0; i < array.length; i++) {
+					Cell c19 = new Cell().add(new Paragraph(array[i])).setKeepTogether(true);
+					table4.addCell(c19);
+				}
+			}
+			doc.add(table4);
+		} catch (SQLException e) {
+			System.out.println(e);
 		}
-		doc.add(table4);
-
 		return form;
 	}// </editor-fold>
 
@@ -518,15 +527,15 @@ public class GenerateQuarterlyReport extends HttpServlet {
 		Paragraph p18 = new Paragraph("Learners have achieved the following:\n").setFontSize(10).setFont(bold);
 		List list = new List().setListSymbol("• \t");
 		doc.add(p18);
-//		if (achievements.contains("*")) {
-//			String [] parts = achievements.split(Pattern.quote("*"));
-//			for (String str : parts) {
-//				list.add(new ListItem(str));
-//			}
-//			p18.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
-//		}else {
-			doc.add(new Paragraph(achievements));
-//		}
+		//		if (achievements.contains("*")) {
+		//			String [] parts = achievements.split(Pattern.quote("*"));
+		//			for (String str : parts) {
+		//				list.add(new ListItem(str));
+		//			}
+		//			p18.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
+		//		}else {
+		doc.add(new Paragraph(achievements));
+		//		}
 
 		Table table1 = new Table(2).setWidth(320).setHeight(80).setFontSize(10).setMarginTop(50).setAutoLayout();
 		String[] entry1 = {"Compiled By", ": " + managerName + " " + managerSurname, "Date", ":  " + myDate, "", "", "Signature",

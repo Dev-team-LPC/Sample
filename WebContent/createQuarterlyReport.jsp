@@ -30,7 +30,7 @@
     <body>
         <%!public static String mentor, months, sla_id, creationDate, creationDateSQL, learnrCount = "", sla_name = "", companyName = "",
                     progType = "", managerName = "", managerSurname = "", managerTel = "", managerSign = "", sdlNum = "", agredidationNum = "",
-                    startDate = "", endDate = "", logo = "", managerCell = "", managerMail = "", managerAddr = "";%>
+                    startDate = "", endDate = "", logo = "", managerCell = "", managerMail = "", managerAddr = "", quarter="";%>
         <%
             months = new Foreword().getString(request.getParameter("months"), " ");
             sla_id = new Foreword().getString(request.getParameter("sla"), ".");
@@ -43,12 +43,13 @@
                 Database DB = new Database();
                 Connection con = DB.getCon1();
                 Statement st = con.createStatement();
-                st.executeQuery("SELECT t1.Name, t1.type, t1.number_of_learners, DATE_FORMAT(t1.start_date,'%d %M %Y') start_date, DATE_FORMAT(t1.end_date,'%d %M %Y') end_date, t2.company_name, t2.registration_number, t2.agredidation_number, t2.logo, t2.address, t2.representative_employer_name, t2.representative_employer_surname, t3.name, t3.surname, t3.cellphone, t3.telephone, t3.email FROM sla t1 INNER JOIN sla_company_details t2 ON t2.id = t1.company_id INNER JOIN sla_project_manager t3 ON t3.id = t2.project_manager_id WHERE t1.id = " + sla_id + ";");
+                st.executeQuery("SELECT t1.Name, t1.type, t1.number_of_learners, DATE_FORMAT(t1.start_date,'%d %M %Y') start_date, DATE_FORMAT(t1.end_date,'%d %M %Y') end_date, if(NOW() <= DATE_ADD(start_date, INTERVAL 3 MONTH), 'First Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 6 MONTH), 'Second Quarter', If(NOW() <= DATE_ADD(start_date, INTERVAL 9 MONTH), 'Third Quarter', if(NOW() <= DATE_ADD(start_date, INTERVAL 12 MONTH), 'Fourth Quarter', 'null')))) quarter, t2.company_name, t2.registration_number, t2.agredidation_number, t2.logo, t2.address, t2.representative_employer_name, t2.representative_employer_surname, t3.name, t3.surname, t3.cellphone, t3.telephone, t3.email FROM sla t1 INNER JOIN sla_company_details t2 ON t2.id = t1.company_id INNER JOIN sla_project_manager t3 ON t3.id = t2.project_manager_id WHERE t1.id = " + sla_id + ";");
                 ResultSet rs = st.getResultSet();
 
                 while (rs.next()) {
-                    progType = (String) rs.getString("t1.type").trim().substring(0);
-                    sla_name = (String) rs.getString("t1.Name").trim();
+                	quarter = (String) rs.getString("quarter");
+                    progType = (String) rs.getString("t1.type");
+                    sla_name = (String) rs.getString("t1.Name");
                     learnrCount = (String) rs.getString("t1.number_of_learners");
                     startDate = (String) rs.getString("start_date");
                     endDate = (String) rs.getString("end_date");
@@ -146,7 +147,7 @@
                                             </tr>
                                             <tr>
                                                 <td>Report Period (Quarter)</td>
-                                                <td>: </td>
+                                                <td>: <%=quarter%></td>
                                             </tr>
                                             <tr>
                                                 <td>Employer’s Name</td>
@@ -154,7 +155,7 @@
                                             </tr>
                                             <tr>
                                                 <td>Date of quarterly report</td>
-                                                <td>: <input id="myDate" type="text" name="creationDate" value="<%=creationDateSQL%>" onchange="setDateSame()" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD"></td>                                            
+                                                <td>: <input style="background-color:#fff;" id="myDate" type="text" name="creationDate" value="<%=creationDateSQL%>" readonly onchange="setDateSame()" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD"></td>                                            
                                             </tr>
                                             <tr>
                                                 <td>Start date</td>
@@ -191,7 +192,7 @@
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i> back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
                                                 </div>
@@ -259,7 +260,7 @@ In the end, the Scrum Framework itself is very simple. It defines only some gene
                                         <h4>Strategic Plan</h4>
                                         <div class="form-group shadow-textarea">
                                             <textarea name="plan" id="plan" class="form-control" minlength="30" maxlength="1000" onload="clean('plan'), charCountr('textCountD', 'plan')" onkeyup="clean('plan'), charCountr('textCountD', 'plan')" onkeydown="clean('plan')" rows="10" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-The programme is in the XXXXX quarter so far it is going well. Of the original intake of 45 interns, XX interns have been employed somewhere else. And a replacement was taken on. All interns are working on various projects as mentioned in the work plan section below.
+The programme is in the <%=quarter.toLowerCase()%> so far it is going well. Of the original intake of 45 interns, XX interns have been employed somewhere else. And a replacement was taken on. All interns are working on various projects as mentioned in the work plan section below.
 
 Evaluating and Monitoring the interns will continue to be a major aspect of <%=companyName%>’s contribution to their empowerment and preparation for meaningful employment, hopefully internally and definitely externally. The monthly assessments carried out ensure that the work and projects they have been engaged in are effective and of high quality. They also give the company, through mutual feedback, ideas on how to improve things for the current and prospective interns’ intake.</textarea>
                                         </div>
@@ -339,7 +340,7 @@ Outcomes based.</textarea>
                                         <%}%>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i> back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-secondary" title="go to the previous section" onclick="$('.carousel').carousel('prev')"><i class="fa fa-chevron-left"></i> previous</button>
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
@@ -361,15 +362,6 @@ Outcomes based.</textarea>
                                         </div>                                     
                                         <p>Activities which are undertaken for <b style="text-decoration: underline;">workplace</b> learning; when and how these were done in this quarter.</p>
                                         <hr class="my-9">
-                                        <script>
-                                            $(document).ready(function () {
-                                                $("#activityTable").on('click', '#btnDelete', function () {
-                                                    if (confirm("Are you sure you want to delete this row, Once done this action cannot be undone?")) {
-                                                        $(this).closest('tr').remove();
-                                                    }
-                                                });
-                                            });
-                                        </script>
                                         <table
                                             class="table table-sm table-responsive table-light table-hover table-bordered" id="activityTable">
                                             <thead style="background-color: #d6d8d9; color: #1b1e21; border: 1px solid #c0c8ca;">
@@ -392,8 +384,7 @@ Outcomes based.</textarea>
                                                         Database DB = new Database();
                                                         Connection con = DB.getCon1();
                                                         Statement st = con.createStatement();
-                                                        st.executeQuery(
-                                                                "SELECT applicant_personal_details.applicant_id, applicant_personal_details.First_Name, "
+                                                        st.executeQuery("SELECT applicant_personal_details.applicant_id, applicant_personal_details.First_Name, "
                                                                 + "applicant_personal_details.Surname, applicants.id_number, tasks.Task_Name, tasks.Task_Percentage, "
                                                                 + "DATE_FORMAT(reports.Report_Date,'%d/%m/%Y') as Report_Date, DATE_FORMAT(SUBDATE(reports.Report_Date, "
                                                                 + "INTERVAL 4 DAY),'%d/%m/%Y') as Actual_Date FROM intern_sla "
@@ -435,7 +426,7 @@ Outcomes based.</textarea>
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i> back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-secondary" title="go to the previous section" onclick="$('.carousel').carousel('prev')"><i class="fa fa-chevron-left"></i> previous</button>
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
@@ -606,7 +597,7 @@ Outcomes based.</textarea>
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i> back</a>
                                                 <div class="btn-group float-right">
                                                     <button role="button" type="button" class="btn btn-md btn-secondary" title="go to the previous section" onclick="$('.carousel').carousel('prev')"><i class="fa fa-chevron-left"></i> previous</button>
                                                     <button role="button" type="button" class="btn btn-md btn-info" title="go to the next section" onclick="$('.carousel').carousel('next')"><i class="fa fa-chevron-right"></i> next</button>
@@ -655,18 +646,18 @@ The learners have learnt to work on their own and also in teams. They Have also 
                                         </table>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <div class="btn-group checkbox float-right">
-                                                    <label> <input type="checkbox" name="status" value="2" title="Only if you DO NOT plan on editing later" onclick="return confirm('If this button is checked, this report will be generated as a PDF. Would you like to continue?')">
-                                                        create report
+                                                <div class="btn-group checkbox float-right" data-toggle="tooltip" data-placement="top" title="If this button is checked, this report will be saved as a PDF document">
+                                                    <label> <input type="checkbox" name="status" value="2">
+                                                        confirm submission
                                                     </label>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-lg-12">
-                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i>  back</a>	
+                                                <a class="btn btn-secondary float-left" role="button" href="<%=request.getContextPath()%>/DashboardController?action=quarterly-reports"><i class="fa fa-arrow-left"></i> back</a>	
                                                 <div class="btn-group float-right">
-                                                    <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()" title="If you plan on editing later"><i class="fa fa-save"></i> save report</button>
+                                                    <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()" data-toggle="tooltip" data-placement="bottom" title="If you plan on editing later"><i class="fa fa-save"></i> save report</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -687,6 +678,18 @@ The learners have learnt to work on their own and also in teams. They Have also 
             </div>
         </div>
         <script type="text/javascript">
+			//table row delete
+        	$(document).ready(function () {
+	            $("#activityTable").on('click', '#btnDelete', function () {
+	                if (confirm("Are you sure you want to delete this row, Once done this action cannot be undone?")) {
+	                    $(this).closest('tr').remove();
+	                }
+	            });
+	        });        
+			//toggle tooltip
+        	$(document).ready(function(){
+			  $('[data-toggle="tooltip"]').tooltip();   
+			});
             //table data storage
             function saveTableData() {
                 var myTab = document.getElementById('activityTable');
