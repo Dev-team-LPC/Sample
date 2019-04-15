@@ -31,7 +31,6 @@ import com.itextpdf.layout.property.*;
 import cc.littlepig.classes.Caps;
 import cc.littlepig.classes.Foreword;
 import cc.littlepig.classes.GlobalConstants;
-import cc.littlepig.classes.TextboxCellRenderer;
 import cc.littlepig.databases.Database;
 
 /**

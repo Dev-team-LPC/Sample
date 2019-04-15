@@ -127,7 +127,7 @@ public class DashboardController extends HttpServlet {
 		EmptyChecker empty = new EmptyChecker(); 
 
 		if (empty.isEmailsEmpty(sla_id) == 'a') {
-			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved. Not all learners have submitted their forms! Check responses on the <a href='/DashboardController?action=email-replies?replyGroup=" + sla_id + "'>email replies</a> page.</div>";
+			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Not all learners have submitted their forms! Check responses on the <a href='/DashboardController?action=email-replies?replyGroup=" + sla_id + "'>email replies</a> page.</div>";
 			request.setAttribute("message", alert);
 			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
 		} else if (empty.isEmailsEmpty(sla_id) == 'b'){
@@ -144,7 +144,7 @@ public class DashboardController extends HttpServlet {
 						con.setAutoCommit(false);
 						st.addBatch("BEGIN;");
 						st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 1, 2);");					
-						st.addBatch("INSERT INTO sla_reports_site_visit (report_id, email_id, visit, project_manager_questionnaire, recommandations, conclusion) VALUES (LAST_INSERT_ID(), (SELECT id from sla_email where sla_id = "+sla_id+" AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6), \""+visit+"\", \""+managerQuestionnaire+"\", \""+recommandations+"\", \""+conclusion+"\");");
+						st.addBatch("INSERT INTO sla_reports_site_visit (report_id, email_id, visit, project_manager_questionnaire, recommandations, conclusion) VALUES (LAST_INSERT_ID(), (SELECT id FROM sla_email WHERE sla_id = "+sla_id+" AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6), \""+visit+"\", \""+managerQuestionnaire+"\", \""+recommandations+"\", \""+conclusion+"\");");
 						st.addBatch("COMMIT");
 						st.executeBatch();
 						con.commit();

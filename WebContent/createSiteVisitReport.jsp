@@ -36,11 +36,11 @@
             String[] visits = {"first", "second", "third", "fourth"};
             EmptyChecker empty = new EmptyChecker();
             if (empty.isEmailsEmpty(sla_id) == 'a') {
-    			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved. Not all learners have submitted their forms! Check responses on the <a href='DashboardController?action=email-replies?replyGroup=" + sla_id + "'>email replies</a> page.</div>";
+    			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Not all learners have submitted their forms! Check responses on the <a href='DashboardController?action=email-replies&replyGroup=" + sla_id + "'>email replies</a> page.</div>";
     			request.setAttribute("message", alert);
     			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
     		} else if (empty.isEmailsEmpty(sla_id) == 'b'){
-    			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Make sure all fields in the <a href='DashboardController?action=email-replies?replyGroup=" + sla_id + "'>email replies</a> page have been filled in before you generate the report.</div>";
+    			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Make sure all fields in the <a href='DashboardController?action=email-replies&replyGroup=" + sla_id + "'>email replies</a> page have been filled in before you generate the report.</div>";
     			request.setAttribute("message", alert);
     			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
     		} else if (empty.isEmailsEmpty(sla_id) == 'c') {
@@ -115,7 +115,7 @@ none.</textarea>
                             <h4>Conclusion</h4>
                             <div class="form-group shadow-textarea">
                                 <textarea name="conclusion" id="conclusion" class="form-control" minlength="30" maxlength="300" onload="clean('conclusion'), charCountr('textCountC', 'conclusion')" onkeyup="clean('conclusion'), charCountr('textCountC', 'conclusion')" onkeydown="clean('conclusion')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-This was the <%=visits[Integer.valueOf(visit) + 1]%> monitoring visit. The programme is doing well. There are no drop outs.</textarea>
+This was the <%=visits[Integer.valueOf(visit)-1]%> monitoring visit. The programme is doing well. There are no drop outs.</textarea>
                             </div>
                             <div id="textCountC" style="font-size: small;"></div>
 
@@ -130,6 +130,9 @@ This was the <%=visits[Integer.valueOf(visit) + 1]%> monitoring visit. The progr
                             </div>
                             <div class="row">
                                 <div class="col-lg-12">
+                                    <div class="btn-group float-left">
+                                        <a class="btn btn-md btn-dark btn-outline-dark" href="<%=request.getContextPath()%>/DashboardController?action=site-visit-reports" role="button"><i class="fa fa-arrow-circle-left"></i> back</a>
+                                    </div>
                                     <div class="btn-group float-right">
                                         <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()"><i class="fa fa-save"></i> save report</button>
                                     </div>

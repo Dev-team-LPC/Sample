@@ -223,7 +223,7 @@
                         }
                     %>
                     <div style="padding-top: 20px;">
-                        <a class="btn btn-md btn-dark btn-outline-dark" href="siteVisitReport.jsp" role="button"><i class="fa fa-arrow-circle-left"></i> back</a>
+                        <a class="btn btn-md btn-dark btn-outline-dark" href="<%=request.getContextPath()%>/DashboardController?action=site-visit-reports" role="button"><i class="fa fa-arrow-circle-left"></i> back</a>
                         <button class="btn btn-md btn-danger btn-outline-danger"  type="button" onclick="conf()"> 
                             <i class="fa fa-exchange"></i> replace
                         </button>
@@ -316,7 +316,7 @@ Software and database"></textarea>
                         <input name="slaId" type="hidden" value="<%=replyGroup%>"></input>
                     </div>
                     <div class="text-center">
-                        <button class="btn btn-md btn-outline-secondary" onclick="window.history.go(-1);"><i class="fa fa-arrow-left"></i> back</button>
+                        <a class="btn btn-md btn-dark btn-outline-dark" href="<%=request.getContextPath()%>/DashboardController?action=site-visit-reports" role="button"><i class="fa fa-arrow-circle-left"></i> back</a>
                         <button class="btn btn-md btn-outline-success" type="submit" <%=dis%> onclick="return confirm('Are you sure you want to submit these comments?')"><i class="fa fa-send"></i> submit</button>
                     </div>
                 </form>

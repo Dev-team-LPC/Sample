@@ -28,7 +28,7 @@
         <link rel="stylesheet" href="css/reports-customstyle.css">
     </head>
     <body>
-    	<%!public static String quarter, status, sla_id, managerQuestionnaire, recommandations, conclusion, visit, creationDate, reportType, creationDateSQL; %>
+    	<%!public static String status, sla_id, managerQuestionnaire, recommandations, conclusion, visit, creationDate, reportType, creationDateSQL; %>
         <%
         	String report_id = request.getParameter("report_id");    
         
@@ -40,9 +40,8 @@
                 ResultSet rs = st.getResultSet();
 
                 while (rs.next()) {
-                	quarter = (String) rs.getString("quarter");
                     sla_id = (String) rs.getString("sla_id");
-                    creationDate = (String) rs.getString("report_date");
+                    creationDate = (String) rs.getString("report_date").trim();
                     status = (String) rs.getString("report_status_id");
                     reportType = (String) rs.getString("report_type_id");
                     visit = (String) rs.getString("visit");
@@ -54,12 +53,8 @@
                 System.out.println(e);
             }
         if(status.equals("2")){
-        	getServletContext().getRequestDispatcher("/GenerateFinalReport?report_id="+report_id+"&report_type="+reportType+"").forward(request, response);
+        	getServletContext().getRequestDispatcher("/GenerateSiteVisitReport?report_id="+report_id+"&report_type="+reportType+"").forward(request, response);
         }            
-        	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM uuuu");
-            DateTimeFormatter formatterSQL = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-            creationDate = formatter.format(LocalDate.parse(request.getParameter(creationDate)));
-            creationDateSQL = formatterSQL.format(LocalDate.parse(request.getParameter(creationDate))); 
         %>
         <div class="d-flex" id="wrapper">
             <!-- Page Content -->
@@ -108,10 +103,12 @@
                         <form action="<%=request.getContextPath()%>/DashboardController?action=save-site-visit-report" method="POST">
                             <input name="sla" type="hidden" value="<%=sla_id%>"/> 
                             <input name="visit" type="hidden" value="<%=visit%>"/>
+                            <input name="report_id" type="hidden" value="<%=report_id%>"/>
+                            <input name="status" type="hidden" value="<%=status%>"/>
                             <div class="form-row">
                                 <div class="col-auto col-md-12">
                                     <label for="myDate">Report Date: </label>
-                                    <input style="background-color:#fff;" id="myDate" type="text" name="creationDate" value="<%=creationDateSQL%>" readonly required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
+                                    <input style="background-color:#fff;" id="myDate" type="text" name="creationDate" value="<%=creationDate%>" readonly required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
                                 </div>
                             </div>                                                
                             <h4>Project Manager/ SDF (Employer) Questionnaire</h4>
@@ -123,7 +120,7 @@
 
                             <h4>Recommendations/ Remedial actions/ Developmental Plans</h4>
                             <div class="form-group shadow-textarea">
-                                <textarea name="recommendations" id="recommendations" class="form-control" minlength="30" maxlength="300" onload="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeyup="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeydown="clean('recommendations')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
+                                <textarea name="recommendations" id="recommendations" class="form-control" minlength="4" maxlength="300" onload="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeyup="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeydown="clean('recommendations')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 4 and not exceed 300.">
 <%=recommandations%></textarea>
                             </div>
                             <div id="textCountB" style="font-size: small;"></div>
@@ -146,8 +143,11 @@
                             </div>
                             <div class="row">
                                 <div class="col-lg-12">
+                                    <div class="btn-group float-left">
+                                        <a class="btn btn-md btn-dark btn-outline-dark" href="<%=request.getContextPath()%>/DashboardController?action=site-visit-reports" role="button"><i class="fa fa-arrow-circle-left"></i> back</a>
+                                    </div>                                
                                     <div class="btn-group float-right">
-                                        <button role="button" type="submit" class="btn btn-md btn-primary" onclick="saveTableData()"><i class="fa fa-save"></i> save report</button>
+                                        <button role="button" type="submit" class="btn btn-md btn-primary"><i class="fa fa-save"></i> save report</button>
                                     </div>
                                 </div>
                             </div>
