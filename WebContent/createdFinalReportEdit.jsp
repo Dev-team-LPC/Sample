@@ -345,8 +345,8 @@
                                                     String surname = "", name = "", id = "", gender = "", company = "";
                                                     
                                                     for (int i = 0; i < place.length && rs.next(); i++) {
-                                                        surname = new Caps().toUpperCaseFirstLetter(rs.getString("Surname"));
-                                                        name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name"));
+                                                        surname = new Caps().toUpperCaseSurname(rs.getString("Surname").trim());
+                                                        name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name").trim());
                                                         id = rs.getString("id_number");
                                                         gender = rs.getString("gender");
                                                         company = rs.getString("company");                                                    	
@@ -745,7 +745,7 @@
                     for (var j = index5; j <= index5; j++) {
                         arr5.push(objCells.item(j).innerHTML);
                         }
-                    document.getElementById("array6").value = arr.join("::");
+                    document.getElementById("array6").value = arr5.join("::");
                 }
             }
             //datepicker

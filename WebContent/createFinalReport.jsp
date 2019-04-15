@@ -361,8 +361,8 @@ Outcomes based.</textarea>
                                                         int count = 0;
                                                         while (rs.next()) {
                                                             count++;
-                                                            String surname = new Caps().toUpperCaseSurname(rs.getString("Surname"));
-                                                            String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name"));
+                                                            String surname = new Caps().toUpperCaseSurname(rs.getString("Surname").trim());
+                                                            String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name").trim());
                                                             String id = rs.getString("id_number");
                                                             String gender = rs.getString("gender");
                                                             String company = rs.getString("company");

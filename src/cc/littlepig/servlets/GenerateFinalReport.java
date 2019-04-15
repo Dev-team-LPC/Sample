@@ -1,29 +1,23 @@
 package cc.littlepig.servlets;
 
-import static com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.ParseException;
+import java.sql.*;
+import java.text.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.io.font.FontConstants;
 import com.itextpdf.io.image.ImageDataFactory;
+import static com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.PageSize;
@@ -31,18 +25,13 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
-import com.itextpdf.layout.element.AreaBreak;
-import com.itextpdf.layout.element.Cell;
-import com.itextpdf.layout.element.Image;
-import com.itextpdf.layout.element.List;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.element.Text;
-import com.itextpdf.layout.property.TextAlignment;
-import com.itextpdf.layout.property.VerticalAlignment;
+import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.property.*;
 
 import cc.littlepig.classes.Caps;
+import cc.littlepig.classes.Foreword;
 import cc.littlepig.classes.GlobalConstants;
+import cc.littlepig.classes.TextboxCellRenderer;
 import cc.littlepig.databases.Database;
 
 /**
@@ -52,9 +41,8 @@ import cc.littlepig.databases.Database;
 public class GenerateFinalReport extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	public static String mentor, months, sla_id, creationDate, learnrCount = "", sla_name = "", companyName = "", progType = "", managerName = "",
-			managerSurname = "", managerTel = "", sdlNum = "", agredidationNum = "",user_id = "", DEST, introduction = "", implementation = "", 
-			implementationDesc = "", plan = "", placement = "", achievements = "", activity_date = "", activity_due_date = "", activity_name = "",
-			activity_outcome = "", activity_action_required = "", myDate = "", myDateSQL = "", report_id = "", quarter = "", location = "";
+			managerSurname = "", managerTel = "", sdlNum = "", agredidationNum = "",user_id = "", DEST, introduction = "", implementation = "", location = "",  
+			implementationDesc = "", plan = "", placement = "", achievements = "", myDate = "", myDateSQL = "", report_id = "", quarter = "", reportType = "";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -67,9 +55,9 @@ public class GenerateFinalReport extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HttpSession session = request.getSession();
 		report_id = request.getParameter("report_id");
-		DEST = GlobalConstants.DEST + File.separator + "final reports" + File.separator + "Final Report by " + new Caps().toUpperCaseFirstLetter(String.valueOf(session.getAttribute("First_Name"))) + " " + LocalDate.now().atTime(LocalTime.now()) + ".pdf";
+		reportType = request.getParameter("report_type");
+		DEST = GlobalConstants.DEST + File.separator + "final reports" + File.separator + "Final Report ["+report_id+"].pdf";
 		File file = new File(DEST);
 		file.getParentFile().mkdirs();
 		try {
@@ -77,52 +65,46 @@ public class GenerateFinalReport extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		response.sendRedirect("reportReview.jsp?file=" + DEST);
+		response.sendRedirect("reportReview.jsp?file=" + DEST+"&report_type="+reportType+"");
 	}
 
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
 
 	protected void createReport(String dest, HttpServletRequest request) throws Exception {
-		months = request.getParameter("months");
-		sla_id = request.getParameter("sla");
-		creationDate = request.getParameter("creationDate").trim();
 		HttpSession session = request.getSession(true);
 		user_id = (String) session.getAttribute("id");
 		//convert the date format to the required
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM uuuu");
 		DateTimeFormatter formatterSQL = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-		myDate = formatter.format(LocalDate.parse(creationDate));
-		myDateSQL = formatterSQL.format(LocalDate.parse(creationDate));
 		try {
 			Database DB = new Database();
 			Connection con = DB.getCon1();
 			Statement st = con.createStatement();
-			if (report_id == null) {
-				st.executeQuery("SELECT * FROM sla_report WHERE sla_id = "+sla_id+" AND user_id = "+user_id+" AND DATE_ADD(created_at, INTERVAL 60 SECOND) >= NOW();");				
-			} else {
-				st.executeQuery("SELECT * FROM sla_report WHERE id = "+report_id+";");
-			}
+			st.executeQuery("SELECT sla_id, report_date, introduction, methodology, methodology_details, strategic_plan, work_placement, achievements, sla_reports_learner_placement.placement FROM sla_reports INNER JOIN sla_reports_final ON sla_reports_final.report_id = sla_reports.id INNER JOIN sla_reports_learner_tasks ON sla_reports_learner_tasks.report_id = sla_reports.id INNER JOIN sla_reports_learner_placement ON sla_reports_learner_placement.final_report_id = sla_reports_final.id WHERE sla_reports.id ="+report_id+";");
 			ResultSet rs = st.getResultSet();
 
 			while (rs.next()) {
 				introduction = (String) rs.getString("introduction").trim().substring(0);
 				implementation = (String) rs.getString("methodology").trim();
 				implementationDesc = (String) rs.getString("methodology_details");
-				plan = (String) rs.getString("plan");
-				placement = (String) rs.getString("placement");
-				location = (String) rs.getString("placement_location");
+				plan = (String) rs.getString("strategic_plan");
+				placement = (String) rs.getString("work_placement");
 				achievements = (String) rs.getString("achievements");
-				activity_date = (String) rs.getString("activity_date");
-				activity_due_date = (String) rs.getString("activity_due_date");
-				activity_name = (String) rs.getString("activity_name");
-				activity_outcome = (String) rs.getString("activity_outcome");
-				activity_action_required = (String) rs.getString("activity_action_required");
+				sla_id = (String) rs.getString("sla_id");
+				creationDate = (String) rs.getString("report_date");
+				location = (String) rs.getString("sla_reports_learner_placement.placement");
+
 			}
 		} catch (SQLException e) {
 			System.out.println(e);
 		}
+		myDate = formatter.format(LocalDate.parse(creationDate));
+		myDateSQL = formatterSQL.format(LocalDate.parse(creationDate));
 
 		PdfDocument pdf = new PdfDocument(new PdfWriter(DEST));
 		pdf.getDocumentInfo().setTitle("Final Report");
@@ -344,40 +326,40 @@ public class GenerateFinalReport extends HttpServlet {
 			//			} else {
 			doc.add(new Paragraph(placement));
 			//			}
-
-			Table table = new Table(6).setWidth(520).setFontSize(8).setFixedLayout();
-			String[] arr = {"Surname", "Name", "Identity Number", "Gender", "Placement", "Employer"};
-
-			for (String arr1 : arr) {
-				Cell c7 = new Cell().add(new Paragraph(arr1)).setBackgroundColor(LIGHT_GRAY).setFont(bold).setFontSize(10);
-				table.addCell(c7);
-			}
-			try {
-				Database DB = new Database();
-				Connection con = DB.getCon1();
-				Statement st = con.createStatement();
-				st.executeQuery("SELECT Surname, First_Name, id_number, IF(applicant_gender_id = 1, \"Female\", \"Male\") gender, (SELECT company_name FROM sla INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id WHERE sla.id = t1.sla_id) company FROM intern_sla t1 INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = t1.applicant_id INNER JOIN applicants ON applicants.id = t1.applicant_id INNER JOIN sla ON t1.sla_id = sla.id WHERE sla_id = " + sla_id + " AND t1.status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1 ORDER BY Surname ASC;");
-				ResultSet rs = st.getResultSet();
-				String [] locaxn = location.split("::");
-				for (int j = 0; j < locaxn.length && rs.next(); j++) {
-					String surname = new Caps().toUpperCaseFirstLetter(rs.getString("Surname"));
-					String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name"));
-					String id = rs.getString("id_number");
-					String gender = rs.getString("gender");
-					String company = rs.getString("company");
-					String[] array = {surname, name, id, gender, locaxn[j], company};
-					for (int i = 0; i < array.length; i++) {
-						Cell c = new Cell().add(new Paragraph(array[i]).setFont(font).setFontSize(10).setTextAlignment(TextAlignment.LEFT));
-						table.addCell(c);
-					}
-				}
-				con.close();
-			} catch (SQLException e) {
-				System.out.println(e);
-			}
-			doc.add(table);
-
 		}
+		
+        Table table = new Table(6).setWidth(520).setFontSize(8).setFixedLayout();
+        String[] arr = {"Surname", "Name", "Identity Number", "Gender", "Placement", "Employer"};
+
+        for (String arr1 : arr) {
+                Cell c7 = new Cell().add(new Paragraph(arr1)).setBackgroundColor(LIGHT_GRAY).setFont(bold).setFontSize(10);
+                table.addCell(c7);
+        }
+        try {
+                Database DB = new Database();
+                Connection con = DB.getCon1();
+                Statement st = con.createStatement();
+                st.executeQuery("SELECT Surname, First_Name, id_number, IF(applicant_gender_id = 1, \"Female\", \"Male\") gender, (SELECT company_name FROM sla INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id WHERE sla.id = t1.sla_id) company FROM intern_sla t1 INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = t1.applicant_id INNER JOIN applicants ON applicants.id = t1.applicant_id INNER JOIN sla ON t1.sla_id = sla.id WHERE sla_id = " + sla_id + " AND t1.status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1 ORDER BY Surname ASC;");
+                ResultSet rs = st.getResultSet();
+                String [] locaxn = location.split("::");
+                for (int j = 0; j < locaxn.length && rs.next(); j++) {
+                        String surname = new Caps().toUpperCaseSurname(rs.getString("Surname").trim());
+                        String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name").trim());
+                        String id = rs.getString("id_number");
+                        String gender = rs.getString("gender");
+                        String company = rs.getString("company");
+                        String[] array = {surname, name, id, gender, locaxn[j], company};
+                        for (int i = 0; i < array.length; i++) {
+                                Cell c = new Cell().add(new Paragraph(array[i]).setFont(font).setFontSize(10).setTextAlignment(TextAlignment.LEFT));
+                                table.addCell(c);
+                        }
+                }
+                con.close();
+        } catch (SQLException e) {
+                System.out.println(e);
+        }
+        doc.add(table);
+		
 		return form;
 	}// </editor-fold>
 
@@ -416,22 +398,38 @@ public class GenerateFinalReport extends HttpServlet {
 				table4.addCell(c10);
 			}
 		}
-		String [] dueDate = activity_due_date.split("::");
-		String [] activityDate = activity_date.split("::");
-		String [] activityName = activity_name.split("::");
-		String [] requiredAction = activity_action_required.split("::");
-		String [] activityOutcome = activity_outcome.split("::");
 
-		for (int j = 0; j < activityName.length; j++) {
+		try {
+			Database DB = new Database();
+			Connection con = DB.getCon1();
+			Statement st = con.createStatement();
+			st.executeQuery("SELECT task_name, task_outcome, task_date, task_due_date, task_action_required FROM sla_reports INNER JOIN sla_reports_learner_tasks ON sla_reports_learner_tasks.report_id = sla_reports.id WHERE sla_reports.id ="+report_id+";");
+			ResultSet rs = st.getResultSet();
+			String [] activity_date = null;
+			String [] activity_due_date = null;
+			String [] activity_name = null;
+			String [] activity_outcome = null;
+			String [] activity_action_required = null;
 			String department = "ICT department";
-			String[] array = {activityDate[j], activityName[j], activityOutcome[j], mentor, department, requiredAction[j], dueDate[j]};
-			for (int i = 0; i < array.length; i++) {
-				Cell c19 = new Cell().add(new Paragraph(array[i])).setKeepTogether(true);
-				table4.addCell(c19);
+			
+			while (rs.next()) {
+			activity_date = rs.getString("task_date").split("::");
+			activity_due_date = rs.getString("task_due_date").split("::");
+			activity_name = rs.getString("task_name").split("::");
+			activity_outcome = rs.getString("task_outcome").split("::");
+			activity_action_required = rs.getString("task_action_required").split("::");
 			}
+			for (int j = 0; j < activity_action_required.length; j++) {
+				String[] array = {activity_date[j], activity_name[j], activity_outcome[j], mentor, department, activity_action_required[j], activity_due_date[j]};
+				for (int i = 0; i < array.length; i++) {
+					Cell c19 = new Cell().add(new Paragraph(array[i])).setKeepTogether(true);
+					table4.addCell(c19);
+				}
+			}
+			doc.add(table4);
+		} catch (SQLException e) {
+			System.out.println(e);
 		}
-		doc.add(table4);
-
 		return form;
 	}// </editor-fold>
 

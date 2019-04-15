@@ -224,9 +224,9 @@
 											<th>SLA Programme</th>
 											<th>Date Created</th>
 											<th>Programme Type</th>
-											<th>Report Type</th>
-											<th>Created By</th>
 											<th>Report Date</th>
+											<th>Created By</th>
+											<th>Report Type</th>
 										</tr>
 									</thead>
 									<%
@@ -236,7 +236,7 @@
 											Database DB = new Database();
 											Connection con = DB.getCon1();
 											Statement st = con.createStatement();
-											st.executeQuery("SELECT sla_reports.id, sla_id, sla.type, sla.Name, sla.number_of_learners, CONCAT(First_Name,' ',Surname) creator, report_date, sla_reports.created_at, sla_report_type.type , sla_report_status.status FROM sla_reports INNER JOIN sla_report_type ON sla_report_type.id = sla_reports.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_reports.report_status_id INNER JOIN sla ON sla.id = sla_reports.sla_id INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_reports.user_id WHERE report_type_id = 3;");
+											st.executeQuery("SELECT sla_reports.id, sla_id, sla.type, sla.Name, sla.number_of_learners, CONCAT(First_Name,' ',Surname) creator, report_date, sla_reports.created_at, sla_report_type.type , sla_report_status.status FROM sla_reports INNER JOIN sla_report_type ON sla_report_type.id = sla_reports.report_type_id INNER JOIN sla_report_status ON sla_report_status.id = sla_reports.report_status_id INNER JOIN sla ON sla.id = sla_reports.sla_id INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_reports.user_id WHERE report_type_id = 3 ORDER BY sla_report_status.status ASC, sla_reports.updated_at DESC, sla_reports.created_at DESC;");
 											ResultSet rs = st.getResultSet();
 
 											while (rs.next()) {
@@ -256,9 +256,9 @@
 										<td><%=sla_name%></td>
 										<td><%=date_created%></td>
 										<td><%=new Caps().toUpperCaseFirstLetter(progType)%></td>
-										<td><%=report_type%></td>
-										<td><%=creator%></td>
 										<td><%=report_date%></td>
+										<td><%=creator%></td>
+										<td><%=report_type%></td>
 									</tr>
 									<%
 										}
