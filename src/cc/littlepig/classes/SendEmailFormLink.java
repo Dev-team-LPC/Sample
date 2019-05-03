@@ -1,5 +1,6 @@
 package cc.littlepig.classes;
 
+import java.time.LocalDate;
 import java.util.Random;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -28,9 +29,15 @@ public class SendEmailFormLink {
 		return new String(buf);
 	}
 
-	public static String encryptedHash(String applicant_id, String email, String randomString) {
+	public static String encryptedLinkHash(String applicant_id, String email, String randomString) {
 		email = email + applicant_id + randomString;
 		String hash = BCrypt.hashpw(email, GlobalConstants.SALT);
+		return hash;
+	}
+
+	public static String encryptedEmailHash(LocalDate date, String emailGroup) {
+		emailGroup = emailGroup + date;
+		String hash = BCrypt.hashpw(emailGroup, GlobalConstants.SALT);
 		return hash;
 	}
 }

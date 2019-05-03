@@ -23,7 +23,6 @@ public class SendEmailResponse extends HttpServlet {
      */
     public SendEmailResponse() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**
@@ -38,7 +37,7 @@ public class SendEmailResponse extends HttpServlet {
             Database DB1 = new Database();
             Connection con1 = DB1.getCon1();
             Statement st1 = con1.createStatement();
-            st1.executeUpdate("UPDATE sla_email SET findings =\"" + findings + "\", exposure =\" " + exposure + "\" WHERE sla_id = " + sla_id + " AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+            st1.executeUpdate("UPDATE sla_emails SET findings =\"" + findings + "\", exposure =\" " + exposure + "\" WHERE sla_id = " + sla_id + " AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6;");
             con1.close();
             String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Comments submitted successfully!</b></div>";
 			request.setAttribute("message", alert);

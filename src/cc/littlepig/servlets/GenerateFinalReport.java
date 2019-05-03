@@ -29,7 +29,7 @@ import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.property.*;
 
 import cc.littlepig.classes.Caps;
-import cc.littlepig.classes.Foreword;
+import cc.littlepig.classes.Footer;
 import cc.littlepig.classes.GlobalConstants;
 import cc.littlepig.databases.Database;
 
@@ -58,13 +58,18 @@ public class GenerateFinalReport extends HttpServlet {
 		reportType = request.getParameter("report_type");
 		DEST = GlobalConstants.DEST + File.separator + "final reports" + File.separator + "Final Report ["+report_id+"].pdf";
 		File file = new File(DEST);
-		file.getParentFile().mkdirs();
-		try {
-			new GenerateFinalReport().createReport(DEST, request);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		response.sendRedirect("reportReview.jsp?file=" + DEST+"&report_type="+reportType+"");
+//		if (file.exists() && !file.isDirectory()) {
+//			response.sendRedirect("reportReview.jsp?file=" + DEST.replaceAll(File.separator + "temp", "") +"&report_type="+reportType+"");
+//		} else {
+			file.getParentFile().mkdirs();
+			try {
+				new GenerateFinalReport().createReport(DEST, request);
+//				new Footer().addFooter(DEST, reportType);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			response.sendRedirect("reportReview.jsp?file=" + DEST +"&report_type="+reportType+"");
+//		}
 	}
 
 	/**
@@ -110,19 +115,12 @@ public class GenerateFinalReport extends HttpServlet {
 		pdf.getDocumentInfo().setAuthor("Siphesihle Pangumso");
 		pdf.getDocumentInfo().setMoreInfo(pdf.getDocumentInfo().getTitle(), pdf.getDocumentInfo().getAuthor());
 		pdf.setDefaultPageSize(PageSize.A4);
-		int n = pdf.getNumberOfPages();
 		try (Document document = new Document(pdf)) {
 			GenerateFinalReport.addSectionOne(document);
 			GenerateFinalReport.addSectionTwo(document);
 			GenerateFinalReport.addSectionThree(document);
 			GenerateFinalReport.addSectionFour(document);
 			GenerateFinalReport.addSectionFive(document);
-			PdfFont font = PdfFontFactory.createFont(FontConstants.HELVETICA_BOLD);
-			PdfFont bold = PdfFontFactory.createFont(FontConstants.HELVETICA_BOLD);
-			for (int i = 1; i <= n; i++) {
-				document.showTextAligned(new Paragraph(String.format("Page %s of %s", i, n)), 559, 20, i, TextAlignment.RIGHT, VerticalAlignment.BOTTOM, 0).setFontSize(9).setFont(font);
-				document.showTextAligned(new Paragraph(String.format("MICT SETA Progress Report Tool for Internship &WIL Version 1 – 20170126", i, n)), 40, 20, i, TextAlignment.LEFT, VerticalAlignment.BOTTOM, 0).setFontSize(9).setFont(font);
-			}	
 			document.close();
 		}
 	}
@@ -251,13 +249,13 @@ public class GenerateFinalReport extends HttpServlet {
 			doc.add(p4);
 			Paragraph p5 = new Paragraph("Introduction\n").setFont(bold).setFontSize(10).setTextAlignment(TextAlignment.LEFT).setKeepWithNext(true);
 			doc.add(p5);
-			doc.add(new Paragraph(introduction));
+			doc.add(new Paragraph(introduction).setFont(font).setFontSize(10));
 			Paragraph p6 = new Paragraph("Project Implementation Methodology").setTextAlignment(TextAlignment.LEFT).setFontSize(10).setFont(bold).setKeepWithNext(true);
 			doc.add(p6);
-			doc.add(new Paragraph(implementation));
+			doc.add(new Paragraph(implementation).setFont(font).setFontSize(10));
 			Paragraph p8 = new Paragraph("Scrum Diagram").setTextAlignment(TextAlignment.CENTER).setFont(bold).setFontSize(10);
 			doc.add(p8);
-			Image scrumDiagram = new Image(ImageDataFactory.create(GlobalConstants.IMAGE_SCRUM));
+			Image scrumDiagram = new Image(ImageDataFactory.create(GlobalConstants.IMAGE_SCRUM1));
 			Cell cell2 = new Cell();
 			cell2.add(scrumDiagram.scaleAbsolute(519, 150));
 			doc.add(cell2);
@@ -271,37 +269,37 @@ public class GenerateFinalReport extends HttpServlet {
 			//				}
 			//			}
 			//			doc.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
-			doc.add(new Paragraph(implementationDesc));
+			doc.add(new Paragraph(implementationDesc).setFont(font).setFontSize(10));
 			Paragraph p11 = new Paragraph("Strategic Plan\n");
 			doc.add(p11.setFont(bold).setFontSize(10).setKeepWithNext(true));
-			doc.add(new Paragraph(plan));
+			doc.add(new Paragraph(plan).setFont(font).setFontSize(10));
 			Paragraph p12 = new Paragraph("Work Placement\n").setKeepWithNext(true);
 			doc.add(p12.setFont(bold).setFontSize(10));
-			doc.add(new Paragraph(placement));
+			doc.add(new Paragraph(placement).setFont(font).setFontSize(10));
 		} else if (companyName.equalsIgnoreCase("Border ICT & Cabling Service") && progType.equalsIgnoreCase("internship")) {
 			Paragraph p4 = new Paragraph("SECTION B: " + progType.toUpperCase() + " QUARTER OVERVIEW").setTextAlignment(TextAlignment.LEFT).setFontSize(12).setFont(bold);
 			doc.add(p4);
 			Paragraph p5 = new Paragraph("Introduction\n").setFont(bold).setFontSize(10).setTextAlignment(TextAlignment.LEFT).setKeepWithNext(true);
 			doc.add(p5);
-			doc.add(new Paragraph(introduction));
+			doc.add(new Paragraph(introduction).setFont(font).setFontSize(10));
 			Paragraph p6 = new Paragraph("Project Implementation Methodology").setTextAlignment(TextAlignment.LEFT).setFontSize(10).setFont(bold).setKeepWithNext(true);
 			doc.add(p6);
-			doc.add(new Paragraph(implementation));
+			doc.add(new Paragraph(implementation).setFont(font).setFontSize(10));
 			Paragraph p11 = new Paragraph("Strategic Plan\n");
 			doc.add(p11.setFont(bold).setFontSize(10).setKeepWithNext(true));
-			doc.add(new Paragraph(plan));
+			doc.add(new Paragraph(plan).setFont(font).setFontSize(10));
 			Paragraph p12 = new Paragraph("Work Placement\n").setKeepWithNext(true);
 			doc.add(p12.setFont(bold).setFontSize(10));
-			doc.add(new Paragraph(placement));
+			doc.add(new Paragraph(placement).setFont(font).setFontSize(10));
 		} else {
 			Paragraph p4 = new Paragraph("SECTION B: " + progType.toUpperCase() + " QUARTER OVERVIEW").setTextAlignment(TextAlignment.LEFT).setFontSize(12).setFont(bold);
 			doc.add(p4);
 			Paragraph p5 = new Paragraph("Introduction\n").setFont(bold).setFontSize(10).setTextAlignment(TextAlignment.LEFT).setKeepWithNext(true);
 			doc.add(p5);
-			doc.add(new Paragraph(introduction));
+			doc.add(new Paragraph(introduction).setFont(font).setFontSize(10));
 			Paragraph p6 = new Paragraph("Project Implementation Methodology").setTextAlignment(TextAlignment.LEFT).setFontSize(10).setFont(bold).setKeepWithNext(true);
 			doc.add(p6);
-			doc.add(new Paragraph(implementation));
+			doc.add(new Paragraph(implementation).setFont(font).setFontSize(10));
 			Paragraph p11 = new Paragraph("Strategic Plan\n");
 			doc.add(p11.setFont(bold).setFontSize(10).setKeepWithNext(true));
 			//			List list = new List().setListSymbol("• \t");
@@ -312,7 +310,7 @@ public class GenerateFinalReport extends HttpServlet {
 			//				}
 			//			}
 			//			doc.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
-			doc.add(new Paragraph(plan));
+			doc.add(new Paragraph(plan).setFont(font).setFontSize(10));
 			Paragraph p12 = new Paragraph("Work Placement\n").setKeepWithNext(true);
 			doc.add(p12.setFont(bold).setFontSize(10));
 			//			List list1 = new List().setListSymbol("• \t");
@@ -323,42 +321,42 @@ public class GenerateFinalReport extends HttpServlet {
 			//				}
 			//				doc.add(list1.setPaddingLeft(15).setFontSize(10).setFont(font));			
 			//			} else {
-			doc.add(new Paragraph(placement));
+			doc.add(new Paragraph(placement).setFont(font).setFontSize(10));
 			//			}
 		}
-		
-        Table table = new Table(6).setWidth(520).setFontSize(8).setFixedLayout();
-        String[] arr = {"Surname", "Name", "Identity Number", "Gender", "Placement", "Employer"};
 
-        for (String arr1 : arr) {
-                Cell c7 = new Cell().add(new Paragraph(arr1)).setBackgroundColor(LIGHT_GRAY).setFont(bold).setFontSize(10);
-                table.addCell(c7);
-        }
-        try {
-                Database DB = new Database();
-                Connection con = DB.getCon1();
-                Statement st = con.createStatement();
-                st.executeQuery("SELECT Surname, First_Name, id_number, IF(applicant_gender_id = 1, \"Female\", \"Male\") gender, (SELECT company_name FROM sla INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id WHERE sla.id = t1.sla_id) company FROM intern_sla t1 INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = t1.applicant_id INNER JOIN applicants ON applicants.id = t1.applicant_id INNER JOIN sla ON t1.sla_id = sla.id WHERE sla_id = " + sla_id + " AND t1.status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1 ORDER BY Surname ASC;");
-                ResultSet rs = st.getResultSet();
-                String [] locaxn = location.split("::");
-                for (int j = 0; j < locaxn.length && rs.next(); j++) {
-                        String surname = new Caps().toUpperCaseSurname(rs.getString("Surname").trim());
-                        String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name").trim());
-                        String id = rs.getString("id_number");
-                        String gender = rs.getString("gender");
-                        String company = rs.getString("company");
-                        String[] array = {surname, name, id, gender, locaxn[j], company};
-                        for (int i = 0; i < array.length; i++) {
-                                Cell c = new Cell().add(new Paragraph(array[i]).setFont(font).setFontSize(10).setTextAlignment(TextAlignment.LEFT));
-                                table.addCell(c);
-                        }
-                }
-                con.close();
-        } catch (SQLException e) {
-                System.out.println(e);
-        }
-        doc.add(table);
-		
+		Table table = new Table(6).setWidth(520).setFontSize(8).setFixedLayout();
+		String[] arr = {"Surname", "Name", "Identity Number", "Gender", "Placement", "Employer"};
+
+		for (String arr1 : arr) {
+			Cell c7 = new Cell().add(new Paragraph(arr1)).setBackgroundColor(LIGHT_GRAY).setFont(bold).setFontSize(10);
+			table.addCell(c7);
+		}
+		try {
+			Database DB = new Database();
+			Connection con = DB.getCon1();
+			Statement st = con.createStatement();
+			st.executeQuery("SELECT Surname, First_Name, id_number, IF(applicant_gender_id = 1, \"Female\", \"Male\") gender, (SELECT company_name FROM sla INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id WHERE sla.id = t1.sla_id) company FROM intern_sla t1 INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = t1.applicant_id INNER JOIN applicants ON applicants.id = t1.applicant_id INNER JOIN sla ON t1.sla_id = sla.id WHERE sla_id = " + sla_id + " AND t1.status_id = 1 AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id=t1.applicant_id HAVING COUNT(t2.applicant_id) < 2) = 1 ORDER BY Surname ASC;");
+			ResultSet rs = st.getResultSet();
+			String [] locaxn = location.split("::");
+			for (int j = 0; j < locaxn.length && rs.next(); j++) {
+				String surname = new Caps().toUpperCaseSurname(rs.getString("Surname").trim());
+				String name = new Caps().toUpperCaseFirstLetter(rs.getString("First_Name").trim());
+				String id = rs.getString("id_number");
+				String gender = rs.getString("gender");
+				String company = rs.getString("company");
+				String[] array = {surname, name, id, gender, locaxn[j], company};
+				for (int i = 0; i < array.length; i++) {
+					Cell c = new Cell().add(new Paragraph(array[i]).setFont(font).setFontSize(10).setTextAlignment(TextAlignment.LEFT));
+					table.addCell(c);
+				}
+			}
+			con.close();
+		} catch (SQLException e) {
+			System.out.println(e);
+		}
+		doc.add(table);
+
 		return form;
 	}// </editor-fold>
 
@@ -410,13 +408,13 @@ public class GenerateFinalReport extends HttpServlet {
 			String [] activity_outcome = null;
 			String [] activity_action_required = null;
 			String department = "ICT department";
-			
+
 			while (rs.next()) {
-			activity_date = rs.getString("task_date").split("::");
-			activity_due_date = rs.getString("task_due_date").split("::");
-			activity_name = rs.getString("task_name").split("::");
-			activity_outcome = rs.getString("task_outcome").split("::");
-			activity_action_required = rs.getString("task_action_required").split("::");
+				activity_date = rs.getString("task_date").split("::");
+				activity_due_date = rs.getString("task_due_date").split("::");
+				activity_name = rs.getString("task_name").split("::");
+				activity_outcome = rs.getString("task_outcome").split("::");
+				activity_action_required = rs.getString("task_action_required").split("::");
 			}
 			for (int j = 0; j < activity_action_required.length; j++) {
 				String[] array = {activity_date[j], activity_name[j], activity_outcome[j], mentor, department, activity_action_required[j], activity_due_date[j]};
@@ -567,7 +565,7 @@ public class GenerateFinalReport extends HttpServlet {
 		//			}
 		//			p18.add(list.setPaddingLeft(15).setFontSize(10).setFont(font));
 		//		}else {
-		doc.add(new Paragraph(achievements));
+		doc.add(new Paragraph(achievements).setFont(font).setFontSize(10));
 		//		}
 
 		Table table1 = new Table(2).setWidth(320).setHeight(80).setFontSize(10).setMarginTop(50).setAutoLayout();

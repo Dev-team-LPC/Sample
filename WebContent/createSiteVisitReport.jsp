@@ -35,8 +35,16 @@
             String sla_id = new Foreword().getString(request.getParameter("sla"), "."), creationDate = formatter.format(LocalDate.parse(request.getParameter("creationDate"))), creationDateSQL = formatterSQL.format(LocalDate.parse(request.getParameter("creationDate"))), visit = request.getParameter("visit");
             String[] visits = {"first", "second", "third", "fourth"};
             EmptyChecker empty = new EmptyChecker();
-            if (empty.isEmailsEmpty(sla_id) == 'a') {
-    			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Not all learners have submitted their forms! Check responses on the <a href='DashboardController?action=email-replies&replyGroup=" + sla_id + "'>email replies</a> page.</div>";
+            if (empty.isEmailsEmpty(sla_id) == 'd'){
+            	String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Before checking replies, you need to have sent an email first</div>";
+        		request.setAttribute("message", alert);
+        		getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
+            } else if (empty.isEmailsEmpty(sla_id) == 'e'){
+            	String alert = "<div class='alert alert-info alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>NOTE!</b> No learner has responded to the email yet</div>";
+        		request.setAttribute("message", alert);
+        		getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
+            } else if (empty.isEmailsEmpty(sla_id) == 'a') {
+    			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Not all learners have submitted their forms! Please check responses on the <a href='DashboardController?action=email-replies&replyGroup=" + sla_id + "'>email replies</a> page.</div>";
     			request.setAttribute("message", alert);
     			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
     		} else if (empty.isEmailsEmpty(sla_id) == 'b'){
@@ -100,21 +108,28 @@
                             </div>                                                
                             <h4>Project Manager/ SDF (Employer) Questionnaire</h4>
                             <div class="form-group shadow-textarea">
-                                <textarea name="managerQuestionnaire" id="managerQuestionnaire" class="form-control" minlength="30" maxlength="300" onload="clean('managerQuestionnaire'), charCountr('textCountA', 'managerQuestionnaire')" onkeyup="clean('managerQuestionnaire'), charCountr('textCountA', 'managerQuestionnaire')" onkeydown="clean('managerQuestionnaire')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
-Learners are progressing and Journalists are currently working on writing articles. Graphic Designer is currently designing posters and flyers. They are applying themselves and producing results that are positive.</textarea>
+                                <textarea name="managerQuestionnaire" id="managerQuestionnaire" class="form-control" minlength="10" maxlength="300" onload="clean('managerQuestionnaire'), charCountr('textCountA', 'managerQuestionnaire')" onkeyup="clean('managerQuestionnaire'), charCountr('textCountA', 'managerQuestionnaire')" onkeydown="clean('managerQuestionnaire')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 10 and not exceed 300.">
+Interns are progressing and Journalists are currently working on writing articles. Graphic Designer is currently designing posters and flyers. They are applying themselves and producing results that are positive.</textarea>
                             </div>
                             <div id="textCountA" style="font-size: small;"></div>
 
+                            <h4>Feedback From Mentor</h4>
+                            <div class="form-group shadow-textarea">
+                                <textarea name="mentorFeedback" id="mentorFeedback" class="form-control" minlength="10" maxlength="300" onload="clean('mentorFeedback'), charCountr('textCountD', 'mentorFeedback')" onkeyup="clean('mentorFeedback'), charCountr('textCountD', 'mentorFeedback')" onkeydown="clean('mentorFeedback')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 10 and not exceed 300.">
+Interns are progressing and Software Developers are currently working on application process system. They are applying themselves and producing results that are positive. They are currently working on applications that will assist us in making our processes easier.</textarea>
+                            </div>
+                            <div id="textCountD" style="font-size: small;"></div>
+
                             <h4>Recommendations/ Remedial actions/ Developmental Plans</h4>
                             <div class="form-group shadow-textarea">
-                                <textarea name="recommendations" id="recommendations" class="form-control" minlength="30" maxlength="300" onload="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeyup="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeydown="clean('recommendations')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
+                                <textarea name="recommendations" id="recommendations" class="form-control" minlength="4" maxlength="300" onload="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeyup="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeydown="clean('recommendations')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 4 and not exceed 300.">
 none.</textarea>
                             </div>
                             <div id="textCountB" style="font-size: small;"></div>
 
                             <h4>Conclusion</h4>
                             <div class="form-group shadow-textarea">
-                                <textarea name="conclusion" id="conclusion" class="form-control" minlength="30" maxlength="300" onload="clean('conclusion'), charCountr('textCountC', 'conclusion')" onkeyup="clean('conclusion'), charCountr('textCountC', 'conclusion')" onkeydown="clean('conclusion')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 30 and not exceed 300.">
+                                <textarea name="conclusion" id="conclusion" class="form-control" minlength="10" maxlength="300" onload="clean('conclusion'), charCountr('textCountC', 'conclusion')" onkeyup="clean('conclusion'), charCountr('textCountC', 'conclusion')" onkeydown="clean('conclusion')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 10 and not exceed 300.">
 This was the <%=visits[Integer.valueOf(visit)-1]%> monitoring visit. The programme is doing well. There are no drop outs.</textarea>
                             </div>
                             <div id="textCountC" style="font-size: small;"></div>

@@ -1,12 +1,7 @@
 package cc.littlepig.servlets;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.sql.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -14,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import cc.littlepig.classes.EmptyChecker;
 import cc.littlepig.databases.Database;
 
 /**
@@ -117,118 +111,116 @@ public class DashboardController extends HttpServlet {
 		HttpSession session = request.getSession(true);
 		String user_id = (String) session.getAttribute("id");
 		String report_id =  request.getParameter("report_id");
+		if (report_id == null) {
+			report_id = "0";
+		}
 		String status = request.getParameter("status");
+		if (status == null) {
+			status = "1";
+		}
 		String sla_id = request.getParameter("sla").trim();
 		String date = request.getParameter("creationDate").trim();
 		String visit = request.getParameter("visit").trim();
 		String managerQuestionnaire = request.getParameter("managerQuestionnaire");
-		String recommandations = request.getParameter("recommandations");
+		String mentorsFeedback = request.getParameter("mentorFeedback");
+		String recommendations = request.getParameter("recommendations");
 		String conclusion = request.getParameter("conclusion");
-		EmptyChecker empty = new EmptyChecker(); 
+		
+//		String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> user id: "+user_id+"<br>report id: "+report_id+"<br>status: "+status+"<br>sla: "+sla_id+"<br>date: "+date+"<br>visit: "+visit+"<br>manager questionnaire: "+managerQuestionnaire+"<br>recommendations: "+recommendations+"<br>conclusion: "+conclusion+"<br> </div>";
+//		request.setAttribute("message", alert);
+//		getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
+		
 
-		if (empty.isEmailsEmpty(sla_id) == 'a') {
-			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Not all learners have submitted their forms! Check responses on the <a href='/DashboardController?action=email-replies?replyGroup=" + sla_id + "'>email replies</a> page.</div>";
-			request.setAttribute("message", alert);
-			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
-		} else if (empty.isEmailsEmpty(sla_id) == 'b'){
-			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Make sure all fields in the <a href='/DashboardController?action=email-replies?replyGroup=" + sla_id + "'>email replies</a> page have been filled in before you generate the report.</div>";
-			request.setAttribute("message", alert);
-			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
-		} else if (empty.isEmailsEmpty(sla_id) == 'c') {
-			if (status == null) {
-				if (report_id == null) {						
-					try {
-						Database DB = new Database();
-						Connection con = DB.getCon1();
-						Statement st = con.createStatement();
-						con.setAutoCommit(false);
-						st.addBatch("BEGIN;");
-						st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 1, 2);");					
-						st.addBatch("INSERT INTO sla_reports_site_visit (report_id, email_id, visit, project_manager_questionnaire, recommandations, conclusion) VALUES (LAST_INSERT_ID(), (SELECT id FROM sla_email WHERE sla_id = "+sla_id+" AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6), \""+visit+"\", \""+managerQuestionnaire+"\", \""+recommandations+"\", \""+conclusion+"\");");
-						st.addBatch("COMMIT");
-						st.executeBatch();
-						con.commit();
-						con.close();
-						String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
-					} catch (SQLException e) {
-						String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
-					}
-				} else {
-					try {
-						Database DB = new Database();
-						Connection con = DB.getCon1();
-						Statement st = con.createStatement();
-						con.setAutoCommit(false);
-						st.addBatch("BEGIN;");
-						st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW() WHERE id = "+report_id+";");					
-						st.addBatch("UPDATE sla_reports_site_visit SET visit = \""+visit+"\", project_manager_questionnaire = \""+managerQuestionnaire+"\", recommandations = \""+recommandations+"\", conclusion = \""+conclusion+"\" WHERE report_id = "+report_id+";");
-						st.addBatch("COMMIT");
-						st.executeBatch();
-						con.commit();
-						con.close();
-						String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report updated successfully!</b></div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
-					} catch (SQLException e) {
-						String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
-					}
+		if (status.equals("1")) {
+			if (report_id.equals("0")) {						
+				try {
+					Database DB = new Database();
+					Connection con = DB.getCon1();
+					Statement st = con.createStatement();
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 1, 2);");					
+					st.addBatch("INSERT INTO sla_reports_site_visit (report_id, email_hash, visit, project_manager_questionnaire, mentors_feedback, recommendations, conclusion) VALUES (LAST_INSERT_ID(), (SELECT DISTINCT email_hash FROM sla_emails WHERE sla_id = "+sla_id+" AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6), \""+visit+"\", \""+managerQuestionnaire+"\", \""+mentorsFeedback+"\", \""+recommendations+"\", \""+conclusion+"\");");
+					st.addBatch("COMMIT");
+					st.executeBatch();
+					con.commit();
+					con.close();
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report saved successfully!</b></div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
+				} catch (SQLException e) {
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
 				}
 			} else {
-				if (report_id == null) {
-					try {
-						Database DB = new Database();
-						Connection con = DB.getCon1();
-						Statement st = con.createStatement();
-						con.setAutoCommit(false);
-						st.addBatch("BEGIN;");
-						st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 2, 2);");					
-						st.addBatch("INSERT INTO sla_reports_site_visit (report_id, email_id, visit, project_manager_questionnaire, recommandations, conclusion) VALUES (LAST_INSERT_ID(), (SELECT id from sla_email where sla_id = "+sla_id+" AND NOW() <= DATE_ADD(email_date, INTERVAL 6 DAY)), \""+visit+"\", \""+managerQuestionnaire+"\", \""+recommandations+"\", \""+conclusion+"\");");
-						st.addBatch("COMMIT");
-						st.executeBatch();
-						con.commit();
-						con.close();
-						String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
-					} catch (SQLException e) {
-						String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
-					}	
-				} else {
-					try {
-						Database DB = new Database();
-						Connection con = DB.getCon1();
-						Statement st = con.createStatement();
-						con.setAutoCommit(false);
-						st.addBatch("BEGIN;");
-						st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW(), report_status_id = 2 WHERE id = "+report_id+";");					
-						st.addBatch("UPDATE sla_reports_site_visit SET visit = \""+visit+"\", project_manager_questionnaire = \""+managerQuestionnaire+"\", recommandations = \""+recommandations+"\", conclusion = \""+conclusion+"\" WHERE report_id = "+report_id+";");
-						st.addBatch("COMMIT");
-						st.executeBatch();
-						con.commit();
-						con.close();
-						String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report updated & generated successfully!</b></div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
-					} catch (SQLException e) {
-						String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
-						request.setAttribute("message", alert);
-						getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
-					}
+				try {
+					Database DB = new Database();
+					Connection con = DB.getCon1();
+					Statement st = con.createStatement();
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW() WHERE id = "+report_id+";");					
+					st.addBatch("UPDATE sla_reports_site_visit SET project_manager_questionnaire = \""+managerQuestionnaire+"\", mentors_feedback = \""+mentorsFeedback+"\", recommendations = \""+recommendations+"\", conclusion = \""+conclusion+"\" WHERE report_id = "+report_id+";");
+					st.addBatch("COMMIT");
+					st.executeBatch();
+					con.commit();
+					con.close();
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report updated successfully!</b></div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
+				} catch (SQLException e) {
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
 				}
 			}
 		} else {
-			String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> An unkown error has occured!</div>";
-			request.setAttribute("message", alert);
-			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
+			if (report_id.equals("0")) {
+				try {
+					Database DB = new Database();
+					Connection con = DB.getCon1();
+					Statement st = con.createStatement();
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("INSERT INTO sla_reports (user_id, sla_id, created_at, report_date, report_status_id, report_type_id) VALUES ("+user_id+", "+sla_id+", NOW(), '"+date+"', 2, 2);");					
+					st.addBatch("INSERT INTO sla_reports_site_visit (report_id, email_hash, visit, project_manager_questionnaire, mentors_feedback, recommendations, conclusion) VALUES (LAST_INSERT_ID(), (SELECT DISTINCT email_hash FROM sla_emails WHERE sla_id = "+sla_id+" AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6), \""+visit+"\", \""+managerQuestionnaire+"\", \""+mentorsFeedback+"\", \""+recommendations+"\", \""+conclusion+"\");");
+					st.addBatch("COMMIT");
+					st.executeBatch();
+					con.commit();
+					con.close();
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report generated successfully!</b></div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
+				} catch (SQLException e) {
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
+				}	
+			} else {
+				try {
+					Database DB = new Database();
+					Connection con = DB.getCon1();
+					Statement st = con.createStatement();
+					con.setAutoCommit(false);
+					st.addBatch("BEGIN;");
+					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW(), report_status_id = 2 WHERE id = "+report_id+";");					
+					st.addBatch("UPDATE sla_reports_site_visit SET project_manager_questionnaire = \""+managerQuestionnaire+"\", \""+mentorsFeedback+"\", recommendations = \""+recommendations+"\", conclusion = \""+conclusion+"\" WHERE report_id = "+report_id+";");
+					st.addBatch("COMMIT");
+					st.executeBatch();
+					con.commit();
+					con.close();
+					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Report updated & generated successfully!</b></div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/siteVisit.jsp").forward(request, response);
+				} catch (SQLException e) {
+					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
+					request.setAttribute("message", alert);
+					getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
+				}
+			}
 		}
+
 	}
 
 	private void saveQuarterlyReport(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -331,7 +323,7 @@ public class DashboardController extends HttpServlet {
 					Statement st = con.createStatement();
 					con.setAutoCommit(false);
 					st.addBatch("BEGIN;");
-					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW(), report_type_id = 2 WHERE id = "+report_id+";");					
+					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW(), report_status_id = 2 WHERE id = "+report_id+";");					
 					st.addBatch("UPDATE sla_reports_quarterly SET introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", methodology_diagram = \""+methodologyDiagram+"\", strategic_plan = \""+plan+"\", work_placement = \""+placement+"\", achievements = \""+achievements+"\" WHERE report_id = "+report_id+";");
 					st.addBatch("UPDATE sla_reports_learner_tasks SET task_name = \""+activity+"\", task_outcome = \""+outcome+"\", task_action_required = \""+requiredAxn+"\", task_date = \""+activityDate+"\", task_due_date = \""+activityDueDate+"\" WHERE report_id = "+report_id+";");
 					st.addBatch("COMMIT");
@@ -454,7 +446,7 @@ public class DashboardController extends HttpServlet {
 					Statement st = con.createStatement();
 					con.setAutoCommit(false);
 					st.addBatch("BEGIN;");
-					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW(), report_type_id = 2 WHERE id = "+report_id+";");					
+					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW(), report_status_id = 2 WHERE id = "+report_id+";");					
 					st.addBatch("UPDATE sla_reports_final SET introduction = \""+intro+"\", methodology = \""+methodology+"\", methodology_details = \""+methodologyDesc+"\", methodology_diagram = \""+methodologyDiagram+"\", strategic_plan = \""+plan+"\", work_placement = \""+placement+"\", achievements = \""+achievements+"\" WHERE report_id = "+report_id+";");
 					st.addBatch("UPDATE sla_reports_learner_placement SET placement = \""+location+"\" WHERE final_report_id = (SELECT id FROM sla_reports_final WHERE report_id = "+report_id+");");
 					st.addBatch("UPDATE sla_reports_learner_tasks SET task_name = \""+activity+"\", task_outcome = \""+outcome+"\", task_action_required = \""+requiredAxn+"\", task_date = \""+activityDate+"\", task_due_date = \""+activityDueDate+"\" WHERE report_id = "+report_id+";");

@@ -29,6 +29,15 @@
         <link rel="stylesheet" href="css/reports-customstyle.css">
     </head>
     <body>
+    <%
+    	String sla_id = new Foreword().getString(request.getParameter("emailGroup"), ".");
+	    EmptyChecker empty = new EmptyChecker();
+	    if (empty.isEmailsEmpty(sla_id) != 'd'){
+	    	String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> An email for this programme has already been sent. You can send another email after FIVE days from the date the previous emails was sent. To see the date it was sent click <a href='"+request.getContextPath()+"/DashboardController?action=email-replies&replyGroup="+sla_id+"'>here</a></div>";
+			request.setAttribute("message", alert);
+			getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
+	    }
+    %>
         <div class="d-flex" id="wrapper">
             <!-- Page Content -->
             <div id="page-content-wrapper">
@@ -77,18 +86,17 @@
                                     <h4 class="display-9">Send Email</h4>
                                 </div>
                                 <div class="card-body">
-                                    <h6 class="card-title font-weight-bold text-secondary">List of all learners in <%=request.getParameter("emailGroup").substring(2)%></h6>
+                                    <h6 class="card-title font-weight-bold text-secondary">List of all learners in <%=request.getParameter("emailGroup").substring(request.getParameter("emailGroup").lastIndexOf(". ")+1)%></h6>
                                     <table class="table table-bordered table-condensed text-nowrap table-sm table-hover">
                                         <thead class="thead-light">
                                             <tr>
-                                                <th>Name</th>
                                                 <th>Surname</th>
+                                                <th>Name</th>
                                                 <th>e-mail</th>
                                                 <th>Add to list</th>
                                             </tr>
                                         </thead>
                                         <%
-                                            String sla_id = new Foreword().getString(request.getParameter("emailGroup"), ".");
                                             try {
                                                 Database DB = new Database();
                                                 Connection con = DB.getCon1();
@@ -141,11 +149,11 @@
                                     <div class="modal-body">
                                         <ol id="emailList"></ol>
                                         <input type="hidden" name="emailGroup" value="<%=sla_id%>">
-                                        <select hidden="true" name="emailListSelect" id="emailListSelect"></select>                                        
-                                    </div>
+                                        <select multiple hidden="true" name="emailListSelect" id="emailListSelect"></select>
+									</div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-md btn-secondary" data-dismiss="modal">close</button>
-                                        <button type="submit" class="btn btn-md btn-primary" onclick="return confirm('Are you sure you want to send an email to the selected leaner(s)? Once done, this action cannot be undone.')"><i class="fa fa-send"></i> send e-mail</button>
+                                        <button type="submit" class="btn btn-md btn-primary" onclick="loadIt()"><i class="fa fa-send"></i> send e-mail</button>
                                     </div>
                                 </form>
                             </div>
@@ -163,6 +171,12 @@
             </div>
         </div>
         <script type="text/javascript">
+	        //Indicate the loading state
+	        function loadIt() {
+				if (confirm('Are you sure you want to send an email to the selected leaner(s)? Once done, this action cannot be undone.')) {
+					$('#emailList').html("<div class='text-center'><span class='spinner-border text-primary' role='status'></span></div>");
+				}
+			}
             //add learners to email list
                 $('.cb').click(function () {
                     $('#emailList').html("");
@@ -171,6 +185,7 @@
                         if ($(this).is(":checked")) {
                             $('#emailList').append('<li>' + $(this).val().split('. ').pop() + '</li>');
                             $('#emailListSelect').append('<option>' + $(this).val() + '</option>');
+                            $("select[multiple] option").prop("selected", "selected");
                         }
                     });
                 });

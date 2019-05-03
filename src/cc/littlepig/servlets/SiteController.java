@@ -67,6 +67,7 @@ public class SiteController extends HttpServlet {
 		String firstName = null;
 		String lastName = null;
 		String user_id = null;
+		String email = null;
 		String encryptedPassword = null;		
 		String pw_hash = null;
 
@@ -74,14 +75,13 @@ public class SiteController extends HttpServlet {
 			Database DB = new Database();
 			Connection con = DB.getCon1();
 			Statement st = con.createStatement();
-			st.executeQuery("SELECT * FROM applicants "
-					+ "INNER JOIN applicant_personal_details ON applicants.id = applicant_personal_details.applicant_id "
-					+ "WHERE email ='" + username + "';");
+			st.executeQuery("SELECT * FROM applicants INNER JOIN applicant_personal_details ON applicants.id = applicant_personal_details.applicant_id WHERE email ='" + username + "';");
 			ResultSet rs = st.getResultSet();        
 			if (rs.next()) {
 				user_id = rs.getString("id");
 				firstName = rs.getString("First_Name");
 				lastName = rs.getString("Surname");
+				email = rs.getString("email");
 				encryptedPassword = (String) rs.getString("encrypted_password");
 				pw_hash = BCrypt.hashpw(password, encryptedPassword);
 			}
@@ -91,18 +91,19 @@ public class SiteController extends HttpServlet {
 		}
 
 
-		if (username.equals("siphesihlepangumso@gmail.com") || username.equals("nsilimela94@gmail.com") || username.equals("simamkele@borderict.co.za")) {
+		//if (username.equals("siphesihlepangumso@gmail.com") || username.equals("nsilimela94@gmail.com") || username.equals("simamkele@borderict.co.za")) {
+		if(username.equals(email)) {	
 			if(encryptedPassword.equals(pw_hash)) {
-			//Invalidating session if any
-			request.getSession().invalidate();
-			HttpSession session = request.getSession(true);
-//			session.setMaxInactiveInterval(5);
-			session.setAttribute("username", username);
-			session.setAttribute("First_Name", firstName);
-			session.setAttribute("Surname", lastName);
-			session.setAttribute("id", user_id);
-			String encode = response.encodeURL(request.getContextPath());
-			response.sendRedirect(encode+"/DashboardController?action=dashboard");
+				//Invalidating session if any
+				request.getSession().invalidate();
+				HttpSession session = request.getSession(true);
+				//session.setMaxInactiveInterval(5);
+				session.setAttribute("username", username);
+				session.setAttribute("First_Name", firstName);
+				session.setAttribute("Surname", lastName);
+				session.setAttribute("id", user_id);
+				String encode = response.encodeURL(request.getContextPath());
+				response.sendRedirect(encode+"/DashboardController?action=dashboard");
 			} else {
 				String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert'  aria-hidden='true'>&times;</button> <b>Warning!</b> incorrect password</div>";
 				request.setAttribute("message", alert);				

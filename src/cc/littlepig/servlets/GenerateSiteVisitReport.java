@@ -35,6 +35,7 @@ import com.itextpdf.layout.renderer.CellRenderer;
 import com.itextpdf.layout.renderer.DrawContext;
 
 import cc.littlepig.classes.Caps;
+import cc.littlepig.classes.Footer;
 import cc.littlepig.classes.GlobalConstants;
 import cc.littlepig.databases.Database;
 
@@ -44,7 +45,7 @@ import cc.littlepig.databases.Database;
 @WebServlet("/GenerateSiteVisitReport")
 public class GenerateSiteVisitReport extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	public static String report_id, reportType, DEST, creationDate, myDate, myDateSQL, sla_id, managerQuestionnaire, recommendations, conclusion ;
+	public static String report_id, reportType, DEST, creationDate, myDate, myDateSQL, sla_id, managerQuestionnaire, mentorFeedback, recommendations, conclusion ;
 	public static int visit;
 
 	/**
@@ -68,7 +69,7 @@ public class GenerateSiteVisitReport extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		response.sendRedirect("reportReview.jsp?file=" + DEST+"&report_type="+reportType+"");
+		response.sendRedirect("reportReview.jsp?file=" + DEST +"&report_type="+reportType+"");
 	}
 
 	/**
@@ -107,36 +108,36 @@ public class GenerateSiteVisitReport extends HttpServlet {
 
 		Paragraph p = new Paragraph("SITE VISIT REPORT").setTextAlignment(TextAlignment.CENTER).setFontSize(10).setFont(bold);
 		doc.add(p);
-		
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM uuuu");
 		DateTimeFormatter formatterSQL = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-        try {
-            Database DB = new Database();
-            Connection con = DB.getCon1();
-            Statement st = con.createStatement();
-            st.executeQuery("SELECT * FROM sla_reports_site_visit INNER JOIN sla_reports ON sla_reports.id = sla_reports_site_visit.report_id WHERE report_id = "+report_id+";");
-            ResultSet rs = st.getResultSet();
+		try {
+			Database DB = new Database();
+			Connection con = DB.getCon1();
+			Statement st = con.createStatement();
+			st.executeQuery("SELECT * FROM sla_reports_site_visit INNER JOIN sla_reports ON sla_reports.id = sla_reports_site_visit.report_id WHERE report_id = "+report_id+";");
+			ResultSet rs = st.getResultSet();
 
-            while (rs.next()) {
-                sla_id = (String) rs.getString("sla_id");
-                creationDate = (String) rs.getString("report_date").trim();
-                visit = (int) rs.getInt("visit");
-                managerQuestionnaire = (String) rs.getString("project_manager_questionnaire");
-                recommendations = (String) rs.getString("recommandations");
-                conclusion = (String) rs.getString("conclusion");
-            }
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
+			while (rs.next()) {
+				sla_id = (String) rs.getString("sla_id");
+				creationDate = (String) rs.getString("report_date").trim();
+				visit = (int) rs.getInt("visit");
+				managerQuestionnaire = (String) rs.getString("project_manager_questionnaire");
+				mentorFeedback = (String) rs.getString("mentors_feedback");
+				recommendations = (String) rs.getString("recommendations");
+				conclusion = (String) rs.getString("conclusion");
+			}
+		} catch (SQLException e) {
+			System.out.println(e);
+		}
 		myDate = formatter.format(LocalDate.parse(creationDate));
 		myDateSQL = formatterSQL.format(LocalDate.parse(creationDate));
-		
+
 		String sla = "", company = "";
-		String query = "SELECT t1.applicant_id, applicant_personal_details.Surname, First_Name, applicant_disability_types.applicant_disability_id, sla.Name, sla.type, company_name, sla_project_manager.name, sla_project_manager.surname, sla_project_manager.telephone, sla_project_manager.email, representative_employer_name, representative_employer_surname, IF (ISNULL(representative_employer_signature) = 1, \"null\",representative_employer_signature) representative_employer_signature, seta_advisor_name, seta_advisor_surname, IF (ISNULL(seta_advisor_signature) = 1, \"null\", seta_advisor_signature) seta_advisor_signature, programme_manager_name, programme_manager_surname, IF (ISNULL(programme_manager_signature) = 1, \"null\", programme_manager_signature) programme_manager_signature, sla.number_of_learners, DATE_FORMAT(sla.start_date,'%d %M %Y') AS start_date, DATE_FORMAT(sla.end_date,'%d %M %Y') AS end_date, TIMESTAMPDIFF(MONTH, start_date, (end_date + 1)) AS dateDiff, IF(applicant_personal_details.applicant_gender_id = 1, \"Female\",\"Male\") AS gender, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id = 1, 1, 0), 0)) as AfMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id = 1, 1, 0), 0)) as AfFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id = 2, 1, 0), 0)) as CMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id = 2, 1, 0), 0)) as CFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id in (3,4), 1, 0), 0)) as AsMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id in (3,4), 1, 0), 0)) as AsFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id = 5, 1, 0), 0)) as WMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id = 5, 1, 0), 0)) as WFCount, Sum(IF (applicant_gender_id = 2, 1, 0)) as totMCount, Sum(IF (applicant_gender_id = 1, 1, 0)) as totFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_disability_id = 2, 1, 0), 0)) as totDMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_disability_id = 2, 1, 0), 0)) as totDFCount FROM intern_sla AS t1 INNER JOIN applicant_disability_types ON t1.applicant_id = applicant_disability_types.applicant_id INNER JOIN applicant_personal_details ON t1.applicant_id = applicant_personal_details.applicant_id INNER JOIN sla ON t1.sla_id =  sla.id INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id INNER JOIN sla_project_manager ON sla_project_manager.id = sla_company_details.project_manager_id WHERE sla_id = " + sla_id + " AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id = t1.applicant_id  AND t2.sla_id = " + sla_id + " HAVING COUNT(t2.applicant_id) < 2) = 1 GROUP BY applicant_personal_details.applicant_id, applicant_personal_details.Surname, First_Name, company_name, applicant_disability_types.applicant_disability_id, sla.Name, sla.type, sla.number_of_learners, sla.start_date, sla.end_date, applicant_personal_details.applicant_gender_id;";
+		String query = "SELECT t1.applicant_id, applicant_personal_details.Surname, First_Name, applicant_disability_types.applicant_disability_id, sla.Name, sla.type, company_name, sla_project_manager.name, sla_project_manager.surname, sla_project_manager.telephone, sla_project_manager.email, representative_employer_name, representative_employer_surname, seta_advisor_name, seta_advisor_surname,programme_manager_name, programme_manager_surname, sla.number_of_learners, DATE_FORMAT(sla.start_date,'%d %M %Y') AS start_date, DATE_FORMAT(sla.end_date,'%d %M %Y') AS end_date, TIMESTAMPDIFF(MONTH, start_date, (end_date + 1)) AS dateDiff, IF(applicant_personal_details.applicant_gender_id = 1, \"Female\",\"Male\") AS gender, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id = 1, 1, 0), 0)) as AfMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id = 1, 1, 0), 0)) as AfFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id = 2, 1, 0), 0)) as CMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id = 2, 1, 0), 0)) as CFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id in (3,4), 1, 0), 0)) as AsMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id in (3,4), 1, 0), 0)) as AsFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_race_id = 5, 1, 0), 0)) as WMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_race_id = 5, 1, 0), 0)) as WFCount, Sum(IF (applicant_gender_id = 2, 1, 0)) as totMCount, Sum(IF (applicant_gender_id = 1, 1, 0)) as totFCount, Sum(IF (applicant_gender_id = 2, IF (applicant_disability_id = 2, 1, 0), 0)) as totDMCount, Sum(IF (applicant_gender_id = 1, IF (applicant_disability_id = 2, 1, 0), 0)) as totDFCount FROM intern_sla AS t1 INNER JOIN applicant_disability_types ON t1.applicant_id = applicant_disability_types.applicant_id INNER JOIN applicant_personal_details ON t1.applicant_id = applicant_personal_details.applicant_id INNER JOIN sla ON t1.sla_id =  sla.id INNER JOIN sla_company_details ON sla_company_details.id = sla.company_id INNER JOIN sla_project_manager ON sla_project_manager.id = sla_company_details.project_manager_id WHERE sla_id = "+sla_id+" AND (SELECT COUNT(t2.applicant_id) FROM intern_sla AS t2 WHERE t2.applicant_id = t1.applicant_id  AND t2.sla_id = "+sla_id+" HAVING COUNT(t2.applicant_id) < 2) = 1 GROUP BY applicant_personal_details.applicant_id, applicant_personal_details.Surname, First_Name, company_name, applicant_disability_types.applicant_disability_id, sla.Name, sla.type, sla.number_of_learners, sla.start_date, sla.end_date, applicant_personal_details.applicant_gender_id;";
 
 		int count = 0;
-		String learnrCount = "", startDate = "", endDate = "", dateDiff = "", progType = "", contactPerson = "", telephone = "", email = "",
-				employer_name = "", employer_signature = "", advisor_name = "", advisor_signature = "", manager_name = "", programme_manager_signature = "";
+		String learnrCount = "", startDate = "", endDate = "", dateDiff = "", progType = "", contactPerson = "", telephone = "", email = "", employer_name = "", advisor_name = "", manager_name = "";
 		try {
 			Database DB = new Database();
 			Connection con = DB.getCon1();
@@ -153,11 +154,8 @@ public class GenerateSiteVisitReport extends HttpServlet {
 				dateDiff = (String) rs.getString("dateDiff");
 				company = (String) rs.getString("company_name");
 				employer_name = new Caps().toUpperCaseFirstLetter((String) rs.getString("representative_employer_name")) + " " + new Caps().toUpperCaseSurname((String) rs.getString("representative_employer_surname"));
-				employer_signature = (String) rs.getString("representative_employer_signature");
 				advisor_name = new Caps().toUpperCaseFirstLetter((String) rs.getString("seta_advisor_name")) + " " + new Caps().toUpperCaseSurname((String) rs.getString("seta_advisor_surname"));
-				advisor_signature = (String) rs.getString("seta_advisor_signature");
 				manager_name = new Caps().toUpperCaseFirstLetter((String) rs.getString("programme_manager_name")) + " " + new Caps().toUpperCaseSurname((String) rs.getString("programme_manager_surname"));
-				programme_manager_signature = (String) rs.getString("programme_manager_signature");
 				contactPerson = new Caps().toUpperCaseFirstLetter((String) rs.getString("sla_project_manager.name")) + " " + new Caps().toUpperCaseSurname((String) rs.getString("sla_project_manager.surname"));
 				telephone = (String) rs.getString("sla_project_manager.telephone");
 				email = (String) rs.getString("sla_project_manager.email");
@@ -208,7 +206,7 @@ public class GenerateSiteVisitReport extends HttpServlet {
 		Paragraph[] arr1 = {first, second, third, fourth};
 		for (int a = 0; a < arr1.length; a++) {
 			String value = "Off";
-			if (visit == (a-1)) {
+			if (visit == (a+1)) {
 				value = "On";
 			}
 			if (a != 0) {
@@ -296,9 +294,9 @@ public class GenerateSiteVisitReport extends HttpServlet {
 
 		//Checkboxes - Programme Duration and Status
 		for (int b = 443; b < 475; b += 12) {
-			String value = "Off";
-			if (b > 472) {
-				value = "On";
+			String value = "On";
+			if (b > 450) {
+				value = "Off";
 			}
 			PdfButtonFormField checkbox = PdfFormField.createCheckBox(doc.getPdfDocument(),
 					new Rectangle(246, b, 10, 10), "cb6" + b, value, PdfFormField.TYPE_CROSS);
@@ -543,7 +541,7 @@ public class GenerateSiteVisitReport extends HttpServlet {
 
 		for (int d = 330; d < 550; d += 170) {
 			String value = "On";
-			if (d > 450) {
+			if (d > 400) {
 				value = "Off";
 			}
 			PdfButtonFormField checkbox8 = PdfFormField.createCheckBox(doc.getPdfDocument(),
@@ -597,7 +595,7 @@ public class GenerateSiteVisitReport extends HttpServlet {
 		String str1 = "The objective of the site visit was to assess and evaluate compliance with the requirements of"
 				+ " the SLA and Approved Learning Programme and where appropriate, to make recommendations for effective (functioning"
 				+ " as intended) implementation of the approved MICT Learning Programme(s).";
-		doc.add(new Paragraph(str1)).setFontSize(10).setFont(font);
+		doc.add(new Paragraph(str1).setFontSize(10).setPaddingLeft(15).setFont(font));
 
 		Paragraph p6 = new Paragraph("3. Learner interviews").setFontSize(10).setFont(bold);
 		doc.add(p6);
@@ -606,7 +604,7 @@ public class GenerateSiteVisitReport extends HttpServlet {
 			Database DB = new Database();
 			Connection con = DB.getCon1();
 			Statement st = con.createStatement();
-			st.executeQuery("SELECT sla_email.applicant_id, First_Name, Surname, sla_ofo_codes.occupations, learner_experience, learner_feedback, learner_highlights, learner_challenges FROM sla_email INNER JOIN applicant_personal_details ON sla_email.applicant_id = applicant_personal_details.applicant_id INNER JOIN intern_sla ON intern_sla.applicant_id = sla_email.applicant_id INNER JOIN sla_ofo_codes ON intern_sla.ofo_code_id = sla_ofo_codes.id WHERE intern_sla.sla_id = " + sla_id + " AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+			st.executeQuery("SELECT sla_emails.applicant_id, First_Name, Surname, sla_ofo_codes.occupations, learner_experience, learner_feedback, learner_highlights, learner_challenges FROM sla_emails INNER JOIN applicant_personal_details ON sla_emails.applicant_id = applicant_personal_details.applicant_id INNER JOIN intern_sla ON intern_sla.applicant_id = sla_emails.applicant_id INNER JOIN sla_ofo_codes ON intern_sla.ofo_code_id = sla_ofo_codes.id WHERE intern_sla.sla_id = "+sla_id+" AND TIMESTAMPDIFF(DAY, sla_emails.created_at, NOW()) < 6;");
 			ResultSet rs = st.getResultSet();
 
 			Paragraph p8 = new Paragraph("Learner’s experience attending the programme:\n");
@@ -646,13 +644,13 @@ public class GenerateSiteVisitReport extends HttpServlet {
 
 		doc.add(new Paragraph("4. Project Manager/ SDF (Employer) Questionnaire").setTextAlignment(TextAlignment.LEFT).setFontSize(10).setFont(bold).setKeepWithNext(true));
 
-		doc.add(new Paragraph(managerQuestionnaire)).setFontSize(10).setFont(font);
+		doc.add(new Paragraph(managerQuestionnaire).setFontSize(10).setPaddingLeft(15).setFont(font));
 
 		try {
 			Database DB = new Database();
 			Connection con = DB.getCon1();
 			Statement st = con.createStatement();
-			st.executeQuery("SELECT DISTINCT findings, exposure FROM sla_email WHERE sla_email.sla_id = " + sla_id + " AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+			st.executeQuery("SELECT DISTINCT findings, exposure FROM sla_emails WHERE sla_emails.sla_id = " + sla_id + " AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6;");
 			ResultSet rs = st.getResultSet();
 
 			Paragraph p10 = new Paragraph("5. Findings:\n").setTextAlignment(TextAlignment.LEFT).setFontSize(10).setFont(bold);
@@ -686,15 +684,13 @@ public class GenerateSiteVisitReport extends HttpServlet {
 		}
 
 		doc.add(new Paragraph("Feedback from mentors:\n" + employer_name + ": Mentor for all interns\n").setFontSize(10).setFont(font));
-		String str3 = "Interns are progressing and Journalists are currently working on writing articles. Graphic Designer is currently "
-				+ "designing posters and flyers. They are applying themselves and producing results that are positive.";
-		doc.add(new Paragraph(str3)).setFontSize(10).setFont(font);
+		doc.add(new Paragraph(mentorFeedback).setFontSize(10).setPaddingLeft(15).setFont(font));
 
 		doc.add(new Paragraph("6. Recommendations/ Remedial actions/ Developmental Plans").setFontSize(10).setFont(bold));
-		doc.add(new Paragraph(recommendations)).setFontSize(10).setFont(font);
+		doc.add(new Paragraph(recommendations).setFontSize(10).setPaddingLeft(15).setFont(font));
 
 		doc.add(new Paragraph("7. Conclusion").setFontSize(10).setFont(bold));
-		doc.add(new Paragraph(conclusion)).setFontSize(10).setFont(font);
+		doc.add(new Paragraph(conclusion).setFontSize(10).setPaddingLeft(15).setFont(font));
 
 		doc.add(new AreaBreak());//new page
 
@@ -778,7 +774,7 @@ public class GenerateSiteVisitReport extends HttpServlet {
 
 		for (int f = 415; f < 550; f += 105) {
 			String value = "On";
-			if (f > 520) {
+			if (f > 420) {
 				value = "Off";
 			}
 			PdfButtonFormField checkbox8 = PdfFormField.createCheckBox(doc.getPdfDocument(),
@@ -800,28 +796,9 @@ public class GenerateSiteVisitReport extends HttpServlet {
 				Cell c15 = new Cell().add(new Paragraph(entry[g]));
 				c15.setBackgroundColor(LIGHT_GRAY).setFont(bold);
 				table13.addCell(c15);
-			} else if (g == 11) {
-				if (!employer_signature.equals("null")) {
-					Cell c15 = new Cell().add(new Paragraph(entry[g]));
-					Image sign1 = new Image(ImageDataFactory.create(employer_signature));
-					sign1.scaleAbsolute(100, 45);
-					c15.add(sign1);
-					table13.addCell(c15);
-				} else {
-					Cell c15 = new Cell().add(new Paragraph(entry[g])).setHeight(45);
-					table13.addCell(c15);
-				}
-			} else if (g == 13) {
-				if (!advisor_signature.equals("null")) {
-					Cell c15 = new Cell().add(new Paragraph(entry[g]));
-					Image sign1 = new Image(ImageDataFactory.create(advisor_signature));
-					sign1.scaleAbsolute(100, 45);
-					c15.add(sign1);
-					table13.addCell(c15);
-				} else {
-					Cell c15 = new Cell().add(new Paragraph(entry[g])).setHeight(45);
-					table13.addCell(c15);
-				}
+			} else if (g == 11 || g == 13) {
+				Cell c15 = new Cell().add(new Paragraph(entry[g])).setHeight(45);
+				table13.addCell(c15);
 			} else {
 				Cell c15 = new Cell().add(new Paragraph(entry[g]));
 				table13.addCell(c15);
@@ -848,16 +825,8 @@ public class GenerateSiteVisitReport extends HttpServlet {
 				c15.setBackgroundColor(LIGHT_GRAY).setFont(bold);
 				table14.addCell(c15);
 			} else if (h == 4) {
-				if (!programme_manager_signature.equals("null")) {
-					Cell c15 = new Cell(1, 3).add(new Paragraph(entry1[h]));
-					Image sign2 = new Image(ImageDataFactory.create(programme_manager_signature));
-					sign2.scaleAbsolute(45, 45);
-					c15.add(sign2);
-					table14.addCell(c15);
-				} else {
-					Cell c15 = new Cell(1, 3).add(new Paragraph(entry1[h])).setHeight(45);
-					table14.addCell(c15);
-				}
+				Cell c15 = new Cell(1, 3).add(new Paragraph(entry1[h])).setHeight(45);
+				table14.addCell(c15);
 			} else {
 				Cell c15 = new Cell(1, 3).add(new Paragraph(entry1[h]));
 				table14.addCell(c15);

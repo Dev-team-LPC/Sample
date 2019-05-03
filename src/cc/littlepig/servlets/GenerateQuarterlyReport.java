@@ -29,6 +29,7 @@ import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.property.*;
 
 import cc.littlepig.classes.Caps;
+import cc.littlepig.classes.Footer;
 import cc.littlepig.classes.Foreword;
 import cc.littlepig.classes.GlobalConstants;
 import cc.littlepig.databases.Database;
@@ -58,13 +59,18 @@ public class GenerateQuarterlyReport extends HttpServlet {
 		reportType = request.getParameter("report_type");
 		DEST = GlobalConstants.DEST + File.separator + "quarterly reports" + File.separator + "Quarterly Report ["+report_id+"].pdf";
 		File file = new File(DEST);
-		file.getParentFile().mkdirs();
-		try {
-			new GenerateQuarterlyReport().createReport(DEST, request);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		response.sendRedirect("reportReview.jsp?file=" + DEST+"&report_type="+reportType+"");
+//		if (file.exists() && !file.isDirectory()) {
+//			response.sendRedirect("reportReview.jsp?file=" + DEST.replaceAll(File.separator + "temp", "") +"&report_type="+reportType+"");
+//		} else {
+			file.getParentFile().mkdirs();
+			try {
+				new GenerateQuarterlyReport().createReport(DEST, request);
+//				new Footer().addFooter(DEST, reportType);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			response.sendRedirect("reportReview.jsp?file=" + DEST +"&report_type="+reportType+"");
+//		}
 	}
 
 	/**
@@ -376,13 +382,13 @@ public class GenerateQuarterlyReport extends HttpServlet {
 			String [] activity_outcome = null;
 			String [] activity_action_required = null;
 			String department = "ICT department";
-			
+
 			while (rs.next()) {
-			activity_date = rs.getString("task_date").split("::");
-			activity_due_date = rs.getString("task_due_date").split("::");
-			activity_name = rs.getString("task_name").split("::");
-			activity_outcome = rs.getString("task_outcome").split("::");
-			activity_action_required = rs.getString("task_action_required").split("::");
+				activity_date = rs.getString("task_date").split("::");
+				activity_due_date = rs.getString("task_due_date").split("::");
+				activity_name = rs.getString("task_name").split("::");
+				activity_outcome = rs.getString("task_outcome").split("::");
+				activity_action_required = rs.getString("task_action_required").split("::");
 			}
 			for (int j = 0; j < activity_action_required.length; j++) {
 				String[] array = {activity_date[j], activity_name[j], activity_outcome[j], mentor, department, activity_action_required[j], activity_due_date[j]};

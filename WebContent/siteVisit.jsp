@@ -211,7 +211,8 @@
                                     <h4 class="display-9">Generate Site Visit Report</h4>
                                 </div>
                                 <div class="card-body">
-                                    <h6 class="card-title font-weight-bold text-secondary">Fill in all form fields to generate a report</h6>
+                                    <h5 class="card-title font-weight-bold text-secondary">Fill in all form fields to generate a report</h5>
+                                    <p class="alert alert-primary small" style="padding: .25rem 0.25rem;"><i class="fa fa-exclamation-triangle"></i> Before creating a site visit report, you need to have sent an email first!</p>
                                     <form name="myform" action="#" method="post">
                                         <div style="display:none;" id="myAlert">
                                             <div class="alert alert-warning alert-dismissable" id="myAlert2">
@@ -270,7 +271,7 @@
                                         <br>
                                         <div class="text-center">
                                             <div class="btn-group">
-                                                <input class="btn btn-md btn-outline-info" onclick="generateReport()" value="submit" type="button">
+                                                <input class="btn btn-outline-primary" onclick="generateReport()" value="submit" type="button">
                                             </div>
                                         </div>                                        
                                     </form>
@@ -321,7 +322,7 @@
                                     <h4 class="display-9">Site Visit Reports</h4>
                                 </div>
                                 <div class="card-body">
-                                    <h6 class="card-title font-weight-bold text-secondary">List of all created reports</h6>
+                                    <h5 class="card-title font-weight-bold text-secondary">List of all created reports</h5>
                                     <table class="table table-bordered table-condensed table-responsive text-nowrap table-sm table-hover">
                                         <thead class="thead-light">
                                             <tr>
@@ -356,7 +357,7 @@
                                                     sla_id = (String) rs.getString("sla_id");
                                                     learners = (String) rs.getString("sla.number_of_learners");
                                         %>
-                                        <tr class='clickable-row' data-href='<%=request.getContextPath()%>/DashboardController?action=edit-site-visit-reports&report_id=<%=report_id%>&sla_id=<%=sla_id%>'  data-toggle="tooltip" data-placement="top" title="click to open report">
+                                        <tr class='clickable-row' data-href='<%=request.getContextPath()%>/DashboardController?action=edit-site-visit-reports&report_id=<%=report_id%>&report_type=<%=report_type%>' data-toggle="tooltip" data-placement="top" title="click to open report">
                                             <td><%=report_status%></td>
                                             <td><%=sla_name%></td>
                                             <td><%=date_created%></td>

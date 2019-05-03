@@ -179,8 +179,8 @@
                                                 </select>                                
                                             </div>
                                             <div class="col-auto">
-                                                <label for="sartDate">Learner's Start Date: </label>   
-                                                <input id="date" class="form-control input-group date" type="date" name="startDate" min="<%=LocalDate.now().minusMonths(3)%>" max="<%=LocalDate.now().plusMonths(3)%>" onkeydown="clean('date')" onkeyup="clean('date')" onclick="clean('date')" required="true" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
+                                                <label for="startDate">Learner's Start Date: </label>   
+                                            	<input class="form-control" style="background-color:#fff;" id="startDate" type="text" name="startDate" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
                                             </div>
                                         </div>
                                         <div class="form-group" style="padding-top: 2%">
@@ -312,7 +312,7 @@
                                         </tbody>
                                     </table>
                                     <hr class="my-3">
-                                    <form method="POST" action="addBulkLearnersUploadHandler" enctype="multipart/form-data">
+                                    <form method="POST" action="AddBulkLearnersUploadHandler" enctype="multipart/form-data">
                                         <div class="form-row">
                                             <div class="col-auto">
                                                 <label for="file4" style="font-size: x-large;">choose a file to upload: </label>
@@ -346,14 +346,10 @@
         <!-- /#wrapper -->
 
         <script>
-            //validate date input
-            function clean(el) {
-                var textfield = document.getElementById(el);
-                var regex = /[^0-9\-]/g;
-                if (textfield.value.search(regex) > -1) {
-                    textfield.value = textfield.value.replace(regex, "");
-                }
-            }
+			//datepicker
+			$('#startDate').datepicker({
+				dateFormat : 'yy-mm-dd', minDate: "-6M", maxDate: "+6M"
+			}).on('keypress', function(e){ e.preventDefault(); });
             //validate form input
             function generateReport() {
                 var x = document.forms["myform"]["slasDropdownQR"].value;

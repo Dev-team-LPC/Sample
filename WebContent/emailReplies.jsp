@@ -29,6 +29,19 @@
         <link rel="stylesheet" href="css/reports-customstyle.css">
     </head>
     <body>
+    <%
+    String replyGroup = new Foreword().getString((request.getParameter("replyGroup").trim()), ".");    
+    EmptyChecker empty = new EmptyChecker();
+    if (empty.isEmailsEmpty(replyGroup) == 'd'){
+    	String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Before checking replies, you need to have sent an email first</div>";
+		request.setAttribute("message", alert);
+		getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
+    } else if (empty.isEmailsEmpty(replyGroup) == 'e'){
+    	String alert = "<div class='alert alert-info alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>NOTE!</b> No learner has responded to the email yet</div>";
+		request.setAttribute("message", alert);
+		getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
+    } else {
+    %>
         <div class="d-flex" id="wrapper">
             <!-- Page Content -->
             <div id="page-content-wrapper">
@@ -84,16 +97,16 @@
                                     <button class="btn btn-sm btn-info btn-outline-info" onclick="myFunction()"><i class="fa fa-refresh"></i> refresh</button>
                                     <form method="POST" action="<%=request.getContextPath()%>/Emails?action=email-reply-update">
                     <div style="padding-top:2%;">
-                        <table class="table table-bordered table-condensed table-responsive text-nowrap table-sm table-hover">
+                        <table class="table table-bordered table-responsive table-sm table-hover">
                             <thead class="thead-light">
                                 <tr>
                                     <th>No.</th>
                                     <th>Status</th>
                                     <th>Name</th>
                                     <th>Surname</th>
-                                    <th>e-mail Address</th>
-                                    <th>Date Sent</th>
-                                    <th>Date Replied</th>
+                                    <th class="text-nowrap">e-mail Address</th>
+                                    <th style="width: 50%">Date Sent</th>
+                                    <th style="width: 50%">Date Replied</th>
                                     <th>Learner's Experience</th>
                                     <th>Learner's Personal Feedback</th>
                                     <th>Learner's Highlights</th>
@@ -104,23 +117,12 @@
                                 <%
                                     int countReply = 0, count = 0;
                                     Foreword fw = new Foreword();
-                                    String replyGroup = fw.getString((request.getParameter("replyGroup").trim()), ".");
                                     try {
                                         Caps cap = new Caps();
                                         Database DB1 = new Database();
                                         Connection con1 = DB1.getCon1();
                                         Statement st1 = con1.createStatement();
-                                        st1.executeQuery("SELECT sla_email.id, sla_email.applicant_id, First_Name, Surname, email, sla_id, "
-                                                + "DATE_FORMAT(email_date,'%d %b %Y %H:%i') AS email_date, "
-                                                + "IF(learner_experience IS NULL,\" \",learner_experience) AS learner_experience, "
-                                                + "IF(learner_feedback IS NULL,\" \",learner_feedback) AS learner_feedback, "
-                                                + "IF(learner_highlights IS NULL,\" \",learner_highlights) AS learner_highlights, "
-                                                + "IF(learner_challenges IS NULL,\" \",learner_challenges) AS learner_challenges, "
-                                                + "IF(form_date IS NULL, \" \",DATE_FORMAT(form_date,'%d %b %Y %H:%i')) as form_date, "
-                                                + "IF(learner_experience IS NULL OR learner_feedback IS NULL, 0, 1) as status "
-                                                + "FROM sla_email INNER JOIN applicants ON applicants.id = sla_email.applicant_id "
-                                                + "INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_email.applicant_id "
-                                                + "WHERE sla_id = " + replyGroup + " AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+                                        st1.executeQuery("SELECT sla_emails.applicant_id, First_Name, Surname, email, DATE_FORMAT(sla_emails.created_at,'%d %b %Y %H:%i') AS email_date, IF(learner_experience IS NULL,\" \",learner_experience) AS learner_experience, IF(learner_feedback IS NULL,\" \",learner_feedback) AS learner_feedback, IF(learner_highlights IS NULL,\" \",learner_highlights) AS learner_highlights, IF(learner_challenges IS NULL,\" \",learner_challenges) AS learner_challenges, IF(form_date IS NULL, \" \",DATE_FORMAT(form_date,'%d %b %Y %H:%i')) as form_date, IF(learner_experience IS NULL OR learner_feedback IS NULL, 0, 1) as status FROM sla_emails INNER JOIN applicant_personal_details ON applicant_personal_details.applicant_id = sla_emails.applicant_id INNER JOIN applicants ON applicants.id = sla_emails.applicant_id WHERE sla_id = "+replyGroup+" AND TIMESTAMPDIFF(DAY, sla_emails.created_at, NOW()) < 6;");
                                         ResultSet rs1 = st1.getResultSet();
                                         while (rs1.next()) {
                                             count++;
@@ -178,7 +180,7 @@
                             Database DB = new Database();
                             Connection con = DB.getCon1();
                             Statement st = con.createStatement();
-                            st.executeQuery("SELECT IF(SUM(ISNULL(findings)) >= 1 OR ISNULL(SUM(ISNULL(findings))) >= 1, 1, 0) findings FROM sla_email WHERE sla_id = " + replyGroup + " AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+                            st.executeQuery("SELECT IF(SUM(ISNULL(findings)) >= 1 OR ISNULL(SUM(ISNULL(findings))) >= 1, 1, 0) findings FROM sla_emails WHERE sla_id = " + replyGroup + " AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6;");
                             ResultSet rs = st.getResultSet();
                             if (rs.next()) {
                                 DBfindings = rs.getInt("findings");
@@ -193,7 +195,7 @@
                                 Database DB = new Database();
                                 Connection con = DB.getCon1();
                                 Statement st = con.createStatement();
-                                st.executeQuery("SELECT DISTINCT findings, exposure FROM sla_email WHERE sla_id = " + replyGroup + " AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+                                st.executeQuery("SELECT DISTINCT findings, exposure FROM sla_emails WHERE sla_id = " + replyGroup + " AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6;");
                                 ResultSet rs = st.getResultSet();
                                 while (rs.next()) {
                                     a = rs.getString("findings");
@@ -229,7 +231,7 @@
                         </button>
                         <script>
                             function conf() {
-                                if (confirm("Do you really want to overwrite these commets?")) {
+                                if (confirm("Do you really want to overwrite these comments?")) {
                                     $("#commentsModal").modal();
                                 } else {
                                     $('.close').alert("close");
@@ -366,5 +368,6 @@ Software and database"></textarea>
                 $('[data-toggle="tooltip"]').tooltip();
             });
         </script>
+        <%}%>        
     </body>
 </html>

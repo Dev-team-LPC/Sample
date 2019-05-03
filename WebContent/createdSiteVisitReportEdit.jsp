@@ -28,9 +28,10 @@
         <link rel="stylesheet" href="css/reports-customstyle.css">
     </head>
     <body>
-    	<%!public static String status, sla_id, managerQuestionnaire, recommandations, conclusion, visit, creationDate, reportType, creationDateSQL; %>
+    	<%!public static String report_id, status, sla_id, managerQuestionnaire, mentorsFeedback, recommendations, conclusion, visit, creationDate, reportType, creationDateSQL; %>
         <%
-        	String report_id = request.getParameter("report_id");    
+        	report_id = request.getParameter("report_id");    
+        	reportType = request.getParameter("report_type");    
         
             try {
                 Database DB = new Database();
@@ -43,10 +44,10 @@
                     sla_id = (String) rs.getString("sla_id");
                     creationDate = (String) rs.getString("report_date").trim();
                     status = (String) rs.getString("report_status_id");
-                    reportType = (String) rs.getString("report_type_id");
                     visit = (String) rs.getString("visit");
                     managerQuestionnaire = (String) rs.getString("project_manager_questionnaire");
-                    recommandations = (String) rs.getString("recommandations");
+                    mentorsFeedback = (String) rs.getString("mentors_feedback");
+                    recommendations = (String) rs.getString("recommendations");
                     conclusion = (String) rs.getString("conclusion");
                 }
             } catch (SQLException e) {
@@ -104,7 +105,6 @@
                             <input name="sla" type="hidden" value="<%=sla_id%>"/> 
                             <input name="visit" type="hidden" value="<%=visit%>"/>
                             <input name="report_id" type="hidden" value="<%=report_id%>"/>
-                            <input name="status" type="hidden" value="<%=status%>"/>
                             <div class="form-row">
                                 <div class="col-auto col-md-12">
                                     <label for="myDate">Report Date: </label>
@@ -118,10 +118,17 @@
                             </div>
                             <div id="textCountA" style="font-size: small;"></div>
 
+                            <h4>Feedback From Mentor</h4>
+                            <div class="form-group shadow-textarea">
+                                <textarea name="mentorFeedback" id="mentorFeedback" class="form-control" minlength="10" maxlength="300" onload="clean('mentorFeedback'), charCountr('textCountD', 'mentorFeedback')" onkeyup="clean('mentorFeedback'), charCountr('textCountD', 'mentorFeedback')" onkeydown="clean('mentorFeedback')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 10 and not exceed 300.">
+<%=mentorsFeedback%></textarea>
+                            </div>
+                            <div id="textCountD" style="font-size: small;"></div>
+                            
                             <h4>Recommendations/ Remedial actions/ Developmental Plans</h4>
                             <div class="form-group shadow-textarea">
                                 <textarea name="recommendations" id="recommendations" class="form-control" minlength="4" maxlength="300" onload="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeyup="clean('recommendations'), charCountr('textCountB', 'recommendations')" onkeydown="clean('recommendations')" rows="3" cols="100" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 4 and not exceed 300.">
-<%=recommandations%></textarea>
+<%=recommendations%></textarea>
                             </div>
                             <div id="textCountB" style="font-size: small;"></div>
 
@@ -147,7 +154,7 @@
                                         <a class="btn btn-md btn-dark btn-outline-dark" href="<%=request.getContextPath()%>/DashboardController?action=site-visit-reports" role="button"><i class="fa fa-arrow-circle-left"></i> back</a>
                                     </div>                                
                                     <div class="btn-group float-right">
-                                        <button role="button" type="submit" class="btn btn-md btn-primary"><i class="fa fa-save"></i> save report</button>
+                                        <button role="button" type="submit" class="btn btn-md btn-primary"><i class="fa fa-save"></i> update report</button>
                                     </div>
                                 </div>
                             </div>

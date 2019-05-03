@@ -12,7 +12,7 @@
             Database DB = new Database();
             Connection con = DB.getCon1();
             Statement st = con.createStatement();
-            st.executeQuery("SELECT IF(SUM(ISNULL(learner_highlights)) >= 1 OR ISNULL(SUM(ISNULL(learner_highlights))) >= 1, 1, 0) learner_experience FROM sla_email WHERE applicant_id = " + applicant_id + " AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+            st.executeQuery("SELECT IF(SUM(ISNULL(learner_highlights)) >= 1 OR ISNULL(SUM(ISNULL(learner_highlights))) >= 1, 1, 0) learner_experience FROM sla_emails WHERE applicant_id = "+applicant_id+" AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6;");
             ResultSet rs = st.getResultSet();
             if (rs.next()) {
                 isEmpty = rs.getInt("learner_experience");
@@ -85,7 +85,7 @@
                     </script>
                     <input type="hidden" name="applicant_id" value="<%=applicant_id%>">
                     <div class="form-group shadow-textarea">
-                        <label for="experience">What major activities have you done in the last 3 months and what tools/software have you used?</label>
+                        <label for="experience"> What major activities have you done in the last 3 months and what tools/software have you used?</label>
                         <textarea name="experience" class="form-control" minlength="50" maxlength="300" id="experience" onkeyup="clean('experience'), charCountr('textCountB', 'experience')" onkeydown="clean('experience')" rows="4" required spellcheck="true" title="Only letters [A to z], numbers [0 to 9] and special characters ? !  . ) , # ( % & : ' - / can be used. The number of characters should be at least 50 and not exceed 300." 
                                   placeholder="I created online surveys using SurveyMonkey, worked on tender applications and submissions, research and presentations, and got a scrum certification."></textarea>
                         <div id="textCountB" style="font-size: small;"></div>
@@ -141,25 +141,8 @@
 </html>
 <%
     }
-} else {%>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="stylesheet" href="css/bootstrap.min.css">
-        <title>link expired</title>
-		<link rel="stylesheet" href="css/reports-customstyle.css">
-    </head>  
-    <body class="bg">
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-            <a class="navbar-dark">
-                <img src="images/logotop.png" width="100" height="30" class="d-inline-block align-top" alt="">
-            </a>
-        </nav>
-        <script>
-            alert('The e-mail link you are trying to access has expired or is invalid!');
-            location.replace("http://www.littlepig.cc/");
-        </script>
-    </body>
-</html>
-<%}%>
+} else {
+	String alert = "<p class='text-gray-500 mb-0'> It's possible that the e-mail link you are trying to access has expired or </p>";
+	request.setAttribute("message", alert);
+	getServletContext().getRequestDispatcher("/urlUnknown.jsp").forward(request, response);
+ }%>

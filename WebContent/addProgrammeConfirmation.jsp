@@ -58,13 +58,13 @@
                 </ul> 
             </div>
         </header>
-        <main role="main" class="container" style="padding-top: 2%; width: 60%  ;">
+        <main role="main" class="container" style="padding-top: 5%; width: 60%;">
             <div class="jumbotron">
                 <div style=" padding-bottom: 3%"><h1><center> Confirm Changes </center></h1></div>
                             <%
                                 String slaName = request.getParameter("slaName").trim();
                                 String programmeType = request.getParameter("programmeType").trim();
-                                String company = new Foreword().getString(request.getParameter("company").trim(), ".");
+                                String company = request.getParameter("company").trim();
                                 String numOfLearners = request.getParameter("learnerNum").trim();
                                 String startDate = request.getParameter("startDate").trim();
                                 String endDate = request.getParameter("endDate").trim();
@@ -164,12 +164,23 @@
                         </td>
                     </tr>
                 </table>
-                <center>
-                    <a class="btn btn-md btn-dark btn-outline-dark" href="addProgramme.jsp" role="button"><i class="fa fa-arrow-circle-left"></i> back</a>
-                    <a class="btn btn-md btn-success btn-outline-success" href="AddProgrammeHandler?slaName=<%=slaName%>&programmeType=<%=programmeType%>&company=<%=company%>&numOfLearners=<%=numOfLearners%>&startDate=<%=startDate%>&endDate=<%=endDate%>&disbursementAmount=<%=disbursementAmount%>&disbursement1=<%=disbursement1%>&disbursement2=<%=disbursement2%>&disbursement3=<%=disbursement3%>&disbursement4=<%=disbursement4%>" 
-                       role="button" onclick="return confirm('Are you sure you want to add this programme? Once done the action cannot be undone!')">
-                        <i class="fa fa-plus"></i> add programme</a>
-                </center>
+                <form action="AddProgrammeHandler" method="POST">
+                <input name="slaName" type="hidden" value="<%=slaName%>">
+                <input name="programmeType" type="hidden" value="<%=programmeType%>">
+                <input name="company" type="hidden" value="<%=company%>">
+                <input name="numOfLearners" type="hidden" value="<%=numOfLearners%>">
+                <input name="startDate" type="hidden" value="<%=startDate%>">
+                <input name="endDate" type="hidden" value="<%=endDate%>">
+                <input name="disbursementAmount" type="hidden" value="<%=disbursementAmount%>">
+                <input name="disbursement1" type="hidden" value="<%=disbursement1%>">
+                <input name="disbursement2" type="hidden" value="<%=disbursement2%>">
+                <input name="disbursement3" type="hidden" value="<%=disbursement3%>">
+                <input name="disbursement4" type="hidden" value="<%=disbursement4%>">
+                   <div class="text-center">
+                        <button class="btn btn-secondary" onclick="window.history.go(-1);"><i class="fa fa-arrow-left"></i> back</button>
+                        <button class="btn btn-md btn-outline-success" type="submit" onclick="return confirm('Are you sure you want to add this programme? Once done the action cannot be undone!')"><i class="fa fa-plus"></i> add programme</button>
+                    </div>
+                </form>
             </div>
         </main>
     </body>

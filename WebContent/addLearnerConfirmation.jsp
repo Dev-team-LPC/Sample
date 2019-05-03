@@ -141,12 +141,12 @@
                             </td>
                         </tr>
                     </table>
-                    <center>
+                    <div class="text-center">
                         <button class="btn btn-secondary" onclick="window.history.go(-1);"><i class="fa fa-arrow-left"></i> back</button>
                         <button class="btn btn-md btn-success btn-outline-success" type="submit" onclick="return confirm('Are you sure you want to add this learner to the programme?')">
                             <i class="fa fa-user-plus"></i> add learner
                         </button>
-                    </center>
+                    </div>
                 </form>
             </div>
         </main>

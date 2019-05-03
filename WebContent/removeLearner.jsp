@@ -99,13 +99,13 @@
                         <li class="breadcrumb-item active">Add Learner</li>
                     </ol>
                     ${message}
-                                        <!-- resignations card-->
+                    <!-- resignations card-->
                     <div class="card mb-4">
                         <div class="card-header">
                             <h4 class="display-9">Learner Resignation</h4>
                         </div>
                         <div class="card-body">
-                            <h6 class="card-title font-weight-bold text-secondary">Fill in all form fields to remove a learner</h6>
+                            <h6 class="card-title font-weight-bold text-secondary">Fill in all form fields to remove a learner (repeat this action to remove a learner permanently)</h6>
                             <form action="removeLearnerConfirmation.jsp" method="POST">
                                 <div class="form-row">
                                     <div class="form-group col-md-6"> 
@@ -148,7 +148,7 @@
                                     </div>
                                     <div class="col-auto col-md-6">
                                         <label for="resignDate">Learner's Resignation Date: </label>   
-                                        <input id="date" class="form-control input-group date" type="date" name="resignDate" min="<%=LocalDate.now().minusMonths(3)%>" max="<%=LocalDate.now().plusMonths(3)%>" onkeydown="clean('date')" onkeyup="clean('date')" onclick="clean('date')" required="true" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
+                                    	<input class="form-control" style="background-color:#fff;" id="resignDate" type="text" name="resignDate" required placeholder="YYYY-MM-DD" pattern="(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))" title="The date should be in this format: YYYY-MM-DD">
                                     </div>
                                 </div>
                                 <div class="col-auto col-md-12" style="padding-top: 2%">
@@ -176,14 +176,10 @@
         <!-- /#wrapper -->
 
         <script>
-            //validate date input
-            function clean(el) {
-                var textfield = document.getElementById(el);
-                var regex = /[^0-9\-]/g;
-                if (textfield.value.search(regex) > -1) {
-                    textfield.value = textfield.value.replace(regex, "");
-                }
-            }
+			//datepicker
+			$('#resignDate').datepicker({
+				dateFormat : 'yy-mm-dd', minDate: "-6M", maxDate: "+6M"
+			}).on('keypress', function(e){ e.preventDefault(); });
             //validate form input
             function generateReport() {
                 var x = document.forms["myform"]["slasDropdownQR"].value;

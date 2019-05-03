@@ -4,7 +4,7 @@
 <%@ page import="cc.littlepig.classes.Caps"%>
 <%@ page import="java.time.format.DateTimeFormatter"%>
 <%@ page import="java.time.LocalDate"%>
-<%@ page import="java.sql.*"%>     
+<%@ page import="java.sql.*"%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -128,7 +128,7 @@
                             <li data-target="#myCatouselIndicator" data-slide-to="4"></li>
                         </ol>
                         <div class="carousel-inner">
-                            <form action="<%=request.getContextPath()%>/DashboardController?action=save-quarterly-report&report_id=<%=report_id%>" method="POST">
+                            <form action="<%=request.getContextPath()%>/DashboardController?action=save-quarterly-report" method="POST">
                                 <input name="sla" type="hidden" value="<%=sla_id%>"/> 
                                 <input name="months" type="hidden" value="<%=months%>"/>
                                 <input name="report_id" type="hidden" value="<%=report_id%>"/>

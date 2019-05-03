@@ -19,7 +19,6 @@ public class Emails extends HttpServlet {
      */
     public Emails() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**
@@ -31,9 +30,6 @@ public class Emails extends HttpServlet {
 		case "email-form":
 			request.getRequestDispatcher("emailForm.jsp").forward(request, response);
 			break;
-		case "email-form-response":
-			request.getRequestDispatcher("SendEmailFormHandler").forward(request, response);
-			break;			
 		default:	
 			request.getRequestDispatcher("urlUnknown.jsp").forward(request, response);
 			break;

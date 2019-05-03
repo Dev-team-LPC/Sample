@@ -15,10 +15,10 @@ public class VerifyEmailLinkHash {
             Database DB = new Database();
             Connection con = DB.getCon1();
             Statement st = con.createStatement();
-            st.executeQuery("select * from sla_email where applicant_id = " + applicant_id + "  AND TIMESTAMPDIFF(DAY, email_date, NOW()) < 6;");
+            st.executeQuery("SELECT * FROM sla_emails WHERE applicant_id = "+applicant_id+" AND TIMESTAMPDIFF(DAY, created_at, NOW()) < 6;");
             ResultSet rs = st.getResultSet();
             while (rs.next()) {
-                if (rs.getString("email_link_hash").equals(hash)) {
+                if (rs.getString("link_hash").equals(hash)) {
                     verified = true;
                 }
             }

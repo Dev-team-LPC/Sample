@@ -64,9 +64,9 @@ public class AddProgrammeHandler extends HttpServlet {
                         con.close();
                         con1.close();
                     } catch (SQLException e) {
-                        request.setAttribute("message", "<script type=\"text/javascript\">"
-                                + "alert('There was an error: " + e.getMessage() + "');"
-                                + "location='addProgramme.jsp';</script>");
+                		String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> There was an error: " + e.getMessage() + "/div>";
+                		request.setAttribute("message", alert);
+                		getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
                     }
                     try {
                     	Database DB1 = new Database();
@@ -89,38 +89,36 @@ public class AddProgrammeHandler extends HttpServlet {
                                 Statement st2 = con2.createStatement();
                                 st2.executeUpdate("INSERT INTO sla_disbursements (sla_id, amount, disbursement1, disbursement2, disbursement3, disbursement4) "
                                         + "VALUES (" + sla_id + "," + disbursementAmount + "," + disbursement1 + "," + disbursement2 + "," + disbursement3 + "," + disbursement4 + ");");
-                                request.setAttribute("message", "<script type=\"text/javascript\">"
-                                        + "alert('SLA programme added successfully!');"
-                                        + "location='addProgramme.jsp';</script>");
                                 con.close();
                             } catch (SQLException e) {
-                                request.setAttribute("message", "<script type=\"text/javascript\">"
-                                        + "alert('There was an error: " + e.getMessage() + "');"
-                                        + "location='addProgramme.jsp';</script>");
+                        		String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> There was an error: " + e.getMessage() + "/div>";
+                        		request.setAttribute("message", alert);
+                        		getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
                             }
+        					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>SLA programme added successfully!</b></div>";
+        					request.setAttribute("message", alert);
+        					getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
                         } else {
-                            request.setAttribute("message", "<script type=\"text/javascript\">"
-                                    + "alert('The was an error retrieving the new company name's data...');"
-                                    + "location='addProgramme.jsp';</script>");
+                    		String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> The was an error retrieving the new company name's data../div>";
+                    		request.setAttribute("message", alert);
+                    		getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
                         }
                         con.close();
                     } catch (SQLException e) {
-                        request.setAttribute("message", "<script type=\"text/javascript\">"
-                                + "alert('There was an error: " + e.getMessage() + "');"
-                                + "location='addProgramme.jsp';</script>");
+                		String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> There was an error: " + e.getMessage() + "/div>";
+                		request.setAttribute("message", alert);
+                		getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
                     }
                 } else {
-                    request.setAttribute("message", "<script type=\"text/javascript\">"
-                            + "alert('The SLA name \"" + slaName + "\" already exist!');"
-                            + "location='addProgramme.jsp';</script>");
+            		String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> The SLA name " + slaName + " already exist!/div>";
+            		request.setAttribute("message", alert);
+            		getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
                 }
             } catch (SQLException e) {
-                request.setAttribute("message", "<script type=\"text/javascript\">"
-                        + "alert('There was an error: " + e.getMessage() + "');"
-                        + "location='addProgramme.jsp';</script>");
-            }
-            getServletContext().getRequestDispatcher("/result.jsp").forward(request, response);
-        
+        		String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> There was an error: " + e.getMessage() + "/div>";
+        		request.setAttribute("message", alert);
+        		getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
+            }        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
