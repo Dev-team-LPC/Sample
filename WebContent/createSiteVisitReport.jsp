@@ -18,6 +18,7 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <link rel="shortcut icon" href="http://www.littlepig.cc/wp-content/themes/littlepig/images/favicon.ico?var=xdv53">
         <!-- datepicker -->        
         <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -36,7 +37,7 @@
             String[] visits = {"first", "second", "third", "fourth"};
             EmptyChecker empty = new EmptyChecker();
             if (empty.isEmailsEmpty(sla_id) == 'd'){
-            	String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Before checking replies, you need to have sent an email first</div>";
+            	String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Before creating a site visit report, you need to have sent an email first</div>";
         		request.setAttribute("message", alert);
         		getServletContext().getRequestDispatcher("/DashboardController?action=site-visit-reports").forward(request, response);
             } else if (empty.isEmailsEmpty(sla_id) == 'e'){

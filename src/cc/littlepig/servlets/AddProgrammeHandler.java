@@ -95,9 +95,9 @@ public class AddProgrammeHandler extends HttpServlet {
                         		request.setAttribute("message", alert);
                         		getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
                             }
-        					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>SLA programme added successfully!</b></div>";
+        					String alert = "<div class='alert alert-success alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>SLA programme added successfully, now you should add learners to the new programme</b></div>";
         					request.setAttribute("message", alert);
-        					getServletContext().getRequestDispatcher("/addProgramme.jsp").forward(request, response);
+        					getServletContext().getRequestDispatcher("/addLearner.jsp").forward(request, response);
                         } else {
                     		String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> The was an error retrieving the new company name's data../div>";
                     		request.setAttribute("message", alert);

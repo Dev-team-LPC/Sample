@@ -58,9 +58,9 @@ public class GenerateFinalReport extends HttpServlet {
 		reportType = request.getParameter("report_type");
 		DEST = GlobalConstants.DEST + File.separator + "final reports" + File.separator + "Final Report ["+report_id+"].pdf";
 		File file = new File(DEST);
-//		if (file.exists() && !file.isDirectory()) {
-//			response.sendRedirect("reportReview.jsp?file=" + DEST.replaceAll(File.separator + "temp", "") +"&report_type="+reportType+"");
-//		} else {
+		if (file.exists() && !file.isDirectory()) {
+			response.sendRedirect("reportReview.jsp?file=" + DEST +"&report_type="+reportType+"");
+		} else {
 			file.getParentFile().mkdirs();
 			try {
 				new GenerateFinalReport().createReport(DEST, request);
@@ -69,7 +69,7 @@ public class GenerateFinalReport extends HttpServlet {
 				e.printStackTrace();
 			}
 			response.sendRedirect("reportReview.jsp?file=" + DEST +"&report_type="+reportType+"");
-//		}
+		}
 	}
 
 	/**

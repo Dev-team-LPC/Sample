@@ -12,6 +12,7 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <link rel="shortcut icon" href="http://www.littlepig.cc/wp-content/themes/littlepig/images/favicon.ico?var=xdv53">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
@@ -29,7 +30,8 @@
                                     <h1 class="h3 mb-3 font-weight-normal">Reports Login </h1>
                                 </div>
 								
-								${message}	
+								${message}
+								<span id="loader"></span>	
 															
                                 <div class="form-label-group">
                                     <i class="fa fa-user"></i> <label for="email">Email address</label>
@@ -41,7 +43,7 @@
                                     <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
                                 </div>
                                 <input name="action" value="loginVerify" hidden="true"><br>
-                                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                                <button class="btn btn-lg btn-primary btn-block" type="submit" onclick="processing()">Sign in</button>
                             </form>
                         </div>
                         <div class="card-footer">         
@@ -56,5 +58,10 @@
                 </div>
             </div>
         </div>
+        <script type="text/javascript">
+        function processing() {
+	        $('#loader').html("<div class='text-center'><span class='spinner-border text-primary' role='status'></span><div>");			
+		}	
+        </script>
     </body>
 </html>

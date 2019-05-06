@@ -1,8 +1,5 @@
 package cc.littlepig.classes;
 
-import java.io.File;
-import java.io.IOException;
-
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.io.font.FontConstants;
 import com.itextpdf.kernel.font.*;
@@ -23,7 +20,7 @@ public class Footer {
 			str = "MICT SETA - Site Visit Report Tool for Learnership &Skills Programme: Version 2 – 2017 02 01";
 		}
 		
-        PdfDocument pdfDoc = new PdfDocument(new PdfReader(DEST), new PdfWriter(DEST.replaceAll(File.separator + "temp", "")));
+        PdfDocument pdfDoc = new PdfDocument(new PdfReader(DEST), new PdfWriter(DEST.replaceAll("without footer", "with footer")));
         Document doc = new Document(pdfDoc);
         PdfFont font = PdfFontFactory.createFont(FontConstants.HELVETICA_BOLD);
         int n = pdfDoc.getNumberOfPages();

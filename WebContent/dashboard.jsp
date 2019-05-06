@@ -17,7 +17,7 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round" rel="stylesheet">
         <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css" rel="stylesheet"/>
-
+        <link rel="shortcut icon" href="http://www.littlepig.cc/wp-content/themes/littlepig/images/favicon.ico?var=xdv53">
         <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
         <!--<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" sintegrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>-->
         <script src="js/bootstrap.js"></script>
@@ -35,7 +35,6 @@
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="<%=request.getContextPath()%>/DashboardController?action=dashboard" class="list-group-item list-group-item-action bg-light"><i class="fa fa-home"></i> Dashboard</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Overview</a>
                     <a class="dropdown-btn list-group-item list-group-item-action bg-light" href="#">                            
                         <i class="fa fa-file-text"></i> Reports
                         <i class="fa fa-caret-down" style="position: absolute; left: 90%;"></i></a>

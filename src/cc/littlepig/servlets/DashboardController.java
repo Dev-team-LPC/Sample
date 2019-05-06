@@ -110,6 +110,7 @@ public class DashboardController extends HttpServlet {
 	private void saveSiteVisitReport(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(true);
 		String user_id = (String) session.getAttribute("id");
+		String reportType =  request.getParameter("report_type");
 		String report_id =  request.getParameter("report_id");
 		if (report_id == null) {
 			report_id = "0";
@@ -172,7 +173,7 @@ public class DashboardController extends HttpServlet {
 				} catch (SQLException e) {
 					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=edit-site-visit-reports&report_id="+report_id+"&report_type="+reportType+"").forward(request, response);
 				}
 			}
 		} else {
@@ -205,7 +206,7 @@ public class DashboardController extends HttpServlet {
 					con.setAutoCommit(false);
 					st.addBatch("BEGIN;");
 					st.addBatch("UPDATE sla_reports SET user_id = "+user_id+", report_date = '"+date+"', updated_at = NOW(), report_status_id = 2 WHERE id = "+report_id+";");					
-					st.addBatch("UPDATE sla_reports_site_visit SET project_manager_questionnaire = \""+managerQuestionnaire+"\", \""+mentorsFeedback+"\", recommendations = \""+recommendations+"\", conclusion = \""+conclusion+"\" WHERE report_id = "+report_id+";");
+					st.addBatch("UPDATE sla_reports_site_visit SET project_manager_questionnaire = \""+managerQuestionnaire+"\", mentors_feedback = \""+mentorsFeedback+"\", recommendations = \""+recommendations+"\", conclusion = \""+conclusion+"\" WHERE report_id = "+report_id+";");
 					st.addBatch("COMMIT");
 					st.executeBatch();
 					con.commit();
@@ -216,7 +217,7 @@ public class DashboardController extends HttpServlet {
 				} catch (SQLException e) {
 					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-site-visit-reports&sla="+ sla_id +"&visit="+ visit +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=edit-site-visit-reports&report_id="+report_id+"&report_type="+reportType+"").forward(request, response);
 				}
 			}
 		}
@@ -289,7 +290,7 @@ public class DashboardController extends HttpServlet {
 				} catch (SQLException e) {
 					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=edit-quarterly-reports&report_id="+report_id+"&sla_id="+sla_id+"").forward(request, response);
 				}
 			}
 		} else {
@@ -336,7 +337,7 @@ public class DashboardController extends HttpServlet {
 				} catch (SQLException e) {
 					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-quarterly-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=edit-quarterly-reports&report_id="+report_id+"&sla_id="+sla_id+"").forward(request, response);
 				}
 			}
 		}
@@ -411,7 +412,7 @@ public class DashboardController extends HttpServlet {
 				} catch (SQLException e) {
 					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=edit-final-reports&report_id="+report_id+"&sla_id="+sla_id+"").forward(request, response);
 				}
 			}
 		} else {
@@ -460,7 +461,7 @@ public class DashboardController extends HttpServlet {
 				} catch (SQLException e) {
 					String alert = "<div class='alert alert-warning alert-dismissable'> <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button> <b>Warning!</b> Your changes could not be saved, there was an error: " + e.getMessage() + "</div>";
 					request.setAttribute("message", alert);
-					getServletContext().getRequestDispatcher("/DashboardController?action=generate-final-reports&sla="+ sla_id +"&months="+ months +"&creationDate="+ date +"").forward(request, response);
+					getServletContext().getRequestDispatcher("/DashboardController?action=edit-final-reports&report_id="+report_id+"&sla_id="+sla_id+"").forward(request, response);
 				}
 			}
 		}

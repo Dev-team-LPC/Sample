@@ -63,13 +63,18 @@ public class GenerateSiteVisitReport extends HttpServlet {
 		reportType = request.getParameter("report_type");
 		DEST = GlobalConstants.DEST + File.separator + "site visit reports" + File.separator + "Site Visit Report ["+report_id+"].pdf";
 		File file = new File(DEST);
-		file.getParentFile().mkdirs();
-		try {
-			new GenerateSiteVisitReport().createReport(DEST, request);
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (file.exists() && !file.isDirectory()) {
+			response.sendRedirect("reportReview.jsp?file=" + DEST + "&report_type="+reportType+"");
+		} else {
+			file.getParentFile().mkdirs();
+			try {
+				new GenerateSiteVisitReport().createReport(DEST, request);
+//				new Footer().addFooter(DEST, reportType);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			response.sendRedirect("reportReview.jsp?file=" + DEST + "&report_type="+reportType+"");
 		}
-		response.sendRedirect("reportReview.jsp?file=" + DEST +"&report_type="+reportType+"");
 	}
 
 	/**
